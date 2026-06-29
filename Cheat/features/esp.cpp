@@ -615,43 +615,44 @@ __skip_skeleton:
                 }
 
                 if (globals.visuals.weapon_name) {
-                    uint64_t pedweaponmanager = cPed + Address::Get()->m_pWeaponManager;
+                    uint64_t pedweaponmanager = *(uint64_t*)(cPed + Address::Get()->m_pWeaponManager);
                     if (pedweaponmanager)
                     {
                         uint64_t pedweaponinfo = *(uint64_t*)(pedweaponmanager + 0x20);
+                        DWORD weaponHash = pedweaponinfo ? *(DWORD*)(pedweaponinfo + 0x10) : 0xA2719263;
                         if (pedweaponinfo)
                         {
                             if (globals.visuals.distance)
                             {
                                 if (globals.visuals.healthposition == 1 || globals.visuals.armorposition == 1) {
-                                    Graphics::Get()->DrawTextA(ImGui::GetFont(), this->m_get_weapon_name(pedweaponinfo), ImVec2(foot.x, foot.y + 23), globals.visuals.text_size, ImColor{ globals.visuals.weapon_color[0], globals.visuals.weapon_color[1], globals.visuals.weapon_color[2], globals.visuals.weapon_color[3] }, true);
+                                    Graphics::Get()->DrawTextA(ImGui::GetFont(), this->m_get_weapon_name(weaponHash), ImVec2(foot.x, foot.y + 23), globals.visuals.text_size, ImColor{ globals.visuals.weapon_color[0], globals.visuals.weapon_color[1], globals.visuals.weapon_color[2], globals.visuals.weapon_color[3] }, true);
                                 }
                                 else if (globals.visuals.healthposition == 1 && globals.visuals.armorposition == 1) {
-                                    Graphics::Get()->DrawTextA(ImGui::GetFont(), this->m_get_weapon_name(pedweaponinfo), ImVec2(foot.x, foot.y + 36), globals.visuals.text_size, ImColor{ globals.visuals.weapon_color[0], globals.visuals.weapon_color[1], globals.visuals.weapon_color[2], globals.visuals.weapon_color[3] }, true);
+                                    Graphics::Get()->DrawTextA(ImGui::GetFont(), this->m_get_weapon_name(weaponHash), ImVec2(foot.x, foot.y + 36), globals.visuals.text_size, ImColor{ globals.visuals.weapon_color[0], globals.visuals.weapon_color[1], globals.visuals.weapon_color[2], globals.visuals.weapon_color[3] }, true);
                                 }
                                 else if (globals.visuals.healthposition == 0 && globals.visuals.armorposition == 0) {
-                                    Graphics::Get()->DrawTextA(ImGui::GetFont(), this->m_get_weapon_name(pedweaponinfo), ImVec2(foot.x, foot.y + 22), globals.visuals.text_size, ImColor{ globals.visuals.weapon_color[0], globals.visuals.weapon_color[1], globals.visuals.weapon_color[2], globals.visuals.weapon_color[3] }, true);
+                                    Graphics::Get()->DrawTextA(ImGui::GetFont(), this->m_get_weapon_name(weaponHash), ImVec2(foot.x, foot.y + 22), globals.visuals.text_size, ImColor{ globals.visuals.weapon_color[0], globals.visuals.weapon_color[1], globals.visuals.weapon_color[2], globals.visuals.weapon_color[3] }, true);
                                 }
                                 else {
-                                    Graphics::Get()->DrawTextA(ImGui::GetFont(), this->m_get_weapon_name(pedweaponinfo), ImVec2(foot.x, foot.y), globals.visuals.text_size, ImColor{ globals.visuals.weapon_color[0], globals.visuals.weapon_color[1], globals.visuals.weapon_color[2], globals.visuals.weapon_color[3] }, true);
+                                    Graphics::Get()->DrawTextA(ImGui::GetFont(), this->m_get_weapon_name(weaponHash), ImVec2(foot.x, foot.y), globals.visuals.text_size, ImColor{ globals.visuals.weapon_color[0], globals.visuals.weapon_color[1], globals.visuals.weapon_color[2], globals.visuals.weapon_color[3] }, true);
                                 }
                             }
                             else
                             {
                                 if (globals.visuals.healthposition == 1) {
-                                    Graphics::Get()->DrawTextA(ImGui::GetFont(), this->m_get_weapon_name(pedweaponinfo), ImVec2(foot.x, foot.y + 8), globals.visuals.text_size, ImColor{ globals.visuals.weapon_color[0], globals.visuals.weapon_color[1], globals.visuals.weapon_color[2], globals.visuals.weapon_color[3] }, true);
+                                    Graphics::Get()->DrawTextA(ImGui::GetFont(), this->m_get_weapon_name(weaponHash), ImVec2(foot.x, foot.y + 8), globals.visuals.text_size, ImColor{ globals.visuals.weapon_color[0], globals.visuals.weapon_color[1], globals.visuals.weapon_color[2], globals.visuals.weapon_color[3] }, true);
                                 }
                                 else if (globals.visuals.armorposition == 1) {
-                                    Graphics::Get()->DrawTextA(ImGui::GetFont(), this->m_get_weapon_name(pedweaponinfo), ImVec2(foot.x, foot.y + 8), globals.visuals.text_size, ImColor{ globals.visuals.weapon_color[0], globals.visuals.weapon_color[1], globals.visuals.weapon_color[2], globals.visuals.weapon_color[3] }, true);
+                                    Graphics::Get()->DrawTextA(ImGui::GetFont(), this->m_get_weapon_name(weaponHash), ImVec2(foot.x, foot.y + 8), globals.visuals.text_size, ImColor{ globals.visuals.weapon_color[0], globals.visuals.weapon_color[1], globals.visuals.weapon_color[2], globals.visuals.weapon_color[3] }, true);
                                 }
                                 else if (globals.visuals.healthposition == 1 && globals.visuals.armorposition == 1) {
-                                    Graphics::Get()->DrawTextA(ImGui::GetFont(), this->m_get_weapon_name(pedweaponinfo), ImVec2(foot.x, foot.y + 24), globals.visuals.text_size, ImColor{ globals.visuals.weapon_color[0], globals.visuals.weapon_color[1], globals.visuals.weapon_color[2], globals.visuals.weapon_color[3] }, true);
+                                    Graphics::Get()->DrawTextA(ImGui::GetFont(), this->m_get_weapon_name(weaponHash), ImVec2(foot.x, foot.y + 24), globals.visuals.text_size, ImColor{ globals.visuals.weapon_color[0], globals.visuals.weapon_color[1], globals.visuals.weapon_color[2], globals.visuals.weapon_color[3] }, true);
                                 }
                                 else if (globals.visuals.healthposition == 0 && globals.visuals.armorposition == 0) {
-                                    Graphics::Get()->DrawTextA(ImGui::GetFont(), this->m_get_weapon_name(pedweaponinfo), ImVec2(foot.x, foot.y + 10), globals.visuals.text_size, ImColor{ globals.visuals.weapon_color[0], globals.visuals.weapon_color[1], globals.visuals.weapon_color[2], globals.visuals.weapon_color[3] }, true);
+                                    Graphics::Get()->DrawTextA(ImGui::GetFont(), this->m_get_weapon_name(weaponHash), ImVec2(foot.x, foot.y + 10), globals.visuals.text_size, ImColor{ globals.visuals.weapon_color[0], globals.visuals.weapon_color[1], globals.visuals.weapon_color[2], globals.visuals.weapon_color[3] }, true);
                                 }
                                 else {
-                                    Graphics::Get()->DrawTextA(ImGui::GetFont(), this->m_get_weapon_name(pedweaponinfo), ImVec2(foot.x, foot.y), globals.visuals.text_size, ImColor{ globals.visuals.weapon_color[0], globals.visuals.weapon_color[1], globals.visuals.weapon_color[2], globals.visuals.weapon_color[3] }, true);
+                                    Graphics::Get()->DrawTextA(ImGui::GetFont(), this->m_get_weapon_name(weaponHash), ImVec2(foot.x, foot.y), globals.visuals.text_size, ImColor{ globals.visuals.weapon_color[0], globals.visuals.weapon_color[1], globals.visuals.weapon_color[2], globals.visuals.weapon_color[3] }, true);
                                 }
                             }
                         }
