@@ -850,10 +850,13 @@ static void BuildPlayerCacheImpl(
 		std::string nameStr;
 		uint64_t playerinfo = 0;
 		if (TryRead<uint64_t>((uint64_t)cPed + Address::Get()->m_pPlayerInfo, &playerinfo) && playerinfo) {
-			uint64_t netid = 0;
-			if (TryRead<uint64_t>(playerinfo + Address::Get()->m_pNetid, &netid)) {
-				std::string name = Address::Get()->GetPlayerNameByNetId(netid);
-				if (name != "NPC" && !name.empty()) nameStr = name;
+			nameStr = Address::Get()->GetPlayerNameFromInfo(playerinfo);
+			if (nameStr.empty() || nameStr == "NPC") {
+				uint64_t netid = 0;
+				if (TryRead<uint64_t>(playerinfo + Address::Get()->m_pNetid, &netid)) {
+					std::string name = Address::Get()->GetPlayerNameByNetId(netid);
+					if (name != "NPC" && !name.empty()) nameStr = name;
+				}
 			}
 		}
 		if (nameStr.empty()) nameStr = "Player";
@@ -4178,7 +4181,7 @@ void Menu::Load() {
  	
  	if (globals.menu_settings.spectator_list) {
  		static double s_lastScan = 0.0;
- 		static std::unordered_map<unsigned long long, double> s_seenUntil; 
+ 		static std::unordered_map<unsigned long long, std::pair<double, std::string>> s_seenUntil; 
  		static std::vector<std::string> s_display;
 
  		double now = ImGui::GetTime();
@@ -4191,7 +4194,7 @@ void Menu::Load() {
  			s_lastScan = now;
  			
  			for (auto it = s_seenUntil.begin(); it != s_seenUntil.end();) {
- 				if (it->second < now) it = s_seenUntil.erase(it); else ++it;
+ 				if (it->second.first < now) it = s_seenUntil.erase(it); else ++it;
  			}
  			
 			uint64_t world_lp = 0;
@@ -4219,28 +4222,25 @@ void Menu::Load() {
 						TryRead<uint64_t>((uint64_t)cPed + Address::Get()->m_pPlayerInfo, &playerinfo);
  						unsigned long long netid64 = 0ULL;
  						if (playerinfo) {
+							nameStr = Address::Get()->GetPlayerNameFromInfo(playerinfo);
 							uint64_t netid = 0;
 							TryRead<uint64_t>(playerinfo + Address::Get()->m_pNetid, &netid);
  							netid64 = (unsigned long long)netid;
- 							std::string name = Address::Get()->GetPlayerNameByNetId(netid);
- 							if (name != "NPC" && !name.empty()) nameStr = name;
+							if (nameStr.empty() || nameStr == "NPC") {
+ 								std::string name = Address::Get()->GetPlayerNameByNetId(netid);
+ 								if (name != "NPC" && !name.empty()) nameStr = name;
+							}
  						}
  						if (nameStr.empty()) nameStr = "Player";
  						
- 						s_seenUntil[netid64 ? netid64 : (unsigned long long)(uintptr_t)cPed] = now + 2.0; 
+ 						s_seenUntil[netid64 ? netid64 : (unsigned long long)(uintptr_t)cPed] = { now + 2.0, nameStr }; 
  					}
  				}
  			}
  			
  			s_display.clear();
  			for (const auto& kv : s_seenUntil) {
- 				
- 				std::string nm = "";
- 				uint64_t keyAsNet = (uint64_t)kv.first;
- 				std::string name = Address::Get()->GetPlayerNameByNetId(keyAsNet);
- 				if (name != "NPC" && !name.empty()) nm = name;
- 				if (nm.empty()) nm = "Player";
- 				s_display.emplace_back(std::move(nm));
+ 				s_display.emplace_back(kv.second.second);
  			}
  			std::sort(s_display.begin(), s_display.end());
  		}

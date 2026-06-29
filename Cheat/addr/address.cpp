@@ -311,6 +311,7 @@ void Address::Load() {
 		m_pDoorstatus = 0x13C0;
 		m_pEnghealth = 0x08E8;
 		m_pNetid = 0xE8;
+		m_pPlayerName = 0xA4;
 		m_pVehMgr = 0x0D10;
 		m_pVelocity = 0x300;
 		m_pGravity = 0xC8C;
@@ -338,6 +339,7 @@ void Address::Load() {
 		m_pDoorstatus = 0x13C0;
 		m_pEnghealth = 0x08E8;
 		m_pNetid = 0xE8;
+		m_pPlayerName = 0xA4;
 		m_pVehMgr = 0x0D10;
 		m_pVelocity = 0x300;
 		m_pGravity = 0xC8C;
@@ -364,6 +366,7 @@ void Address::Load() {
 		m_pDoorstatus = 0x13C0;
 		m_pEnghealth = 0x08E8;
 		m_pNetid = 0xE8;
+		m_pPlayerName = 0xA4;
 		m_pVehMgr = 0x0D10;
 		m_pVelocity = 0x300;
 		m_pGravity = 0xC5C;
@@ -391,6 +394,7 @@ void Address::Load() {
 		m_pDoorstatus = 0x1370;
 		m_pEnghealth = 0x08E8;
 		m_pNetid = 0xE8;
+		m_pPlayerName = 0xA4;
 		m_pVehMgr = 0x0D10;
 		m_pVelocity = 0x300;
 		m_pGravity = 0xC5C;
@@ -418,6 +422,7 @@ void Address::Load() {
 		m_pDoorstatus = 0x1370;
 		m_pEnghealth = 0x08E8;
 		m_pNetid = 0x88;
+		m_pPlayerName = 0x84;
 		m_pVehMgr = 0x0D10;
 		m_pVelocity = 0x300;
 		m_pGravity = 0xC5C;
@@ -445,6 +450,7 @@ void Address::Load() {
 		m_pDoorstatus = 0x1390;
 		m_pEnghealth = 0x908;
 		m_pNetid = 0x88;
+		m_pPlayerName = 0x84;
 		m_pVehMgr = 0x0D30;
 		m_pVelocity = 0x320;
 		m_pGravity = 0xC5C;
@@ -472,6 +478,7 @@ void Address::Load() {
 		m_pDoorstatus = 0x1390;
 		m_pEnghealth = 0x908;
 		m_pNetid = 0x88;
+		m_pPlayerName = 0x84;
 		m_pVehMgr = 0x0D30;
 		m_pVelocity = 0x320;
 		m_pGravity = 0xC5C;
@@ -499,6 +506,7 @@ void Address::Load() {
 		m_pDoorstatus = 0x1390;
 		m_pEnghealth = 0x908;
 		m_pNetid = 0x88;
+		m_pPlayerName = 0x84;
 		m_pVehMgr = 0x0D30;
 		m_pVelocity = 0x320;
 		m_pGravity = 0xC5C;
@@ -526,6 +534,7 @@ void Address::Load() {
 		m_pDoorstatus = 0x1390;
 		m_pEnghealth = 0x908;
 		m_pNetid = 0x88;
+		m_pPlayerName = 0x84;
 		m_pVehMgr = 0x0D30;
 		m_pVelocity = 0x320;
 		m_pGravity = 0xC5C;
@@ -553,6 +562,7 @@ void Address::Load() {
 		m_pDoorstatus = 0x1390;
 		m_pEnghealth = 0x908;
 		m_pNetid = 0x68;
+		m_pPlayerName = 0x84;
 		m_pVehMgr = 0x0D30;
 		m_pVelocity = 0x320;
 		m_pGravity = 0xC5C;
@@ -580,6 +590,7 @@ void Address::Load() {
 		m_pDoorstatus = 0x1390;
 		m_pEnghealth = 0x908;
 		m_pNetid = 0x68;
+		m_pPlayerName = 0x84;
 		m_pVehMgr = 0x0D28;
 		m_pVelocity = 0x320;
 		m_pGravity = 0xC5C;
@@ -607,6 +618,7 @@ void Address::Load() {
 		m_pDoorstatus = 0x1350;
 		m_pEnghealth = 0x908;
 		m_pNetid = 0x60;
+		m_pPlayerName = 0x7C;
 		m_pVehMgr = 0x0D28;
 		m_pHandlingData = 0x0918;
 		m_pVelocity = 0x300;
@@ -667,6 +679,22 @@ void Address::GetPlayerNameInternal(int netid, char* outName, size_t outSize) {
         }
     }
     __except (EXCEPTION_EXECUTE_HANDLER) {}
+}
+
+std::string Address::GetPlayerNameFromInfo(uint64_t playerinfo) {
+    if (!playerinfo) return "";
+    __try {
+        if (IsBadReadPtr((void*)playerinfo, m_pPlayerName + 20)) return "";
+        const char* namePtr = (const char*)(playerinfo + m_pPlayerName);
+        if (!namePtr || IsBadStringPtrA(namePtr, 20)) return "";
+        char buf[24] = {};
+        strncpy_s(buf, sizeof(buf), namePtr, _TRUNCATE);
+        buf[20] = '\0';
+        if (buf[0] == '\0') return "";
+        return std::string(buf);
+    }
+    __except (EXCEPTION_EXECUTE_HANDLER) {}
+    return "";
 }
 
 std::string Address::GetPlayerNameByNetId(int netid) {

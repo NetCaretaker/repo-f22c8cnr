@@ -431,13 +431,16 @@ __skip_skeleton:
                     std::string player_name_string_esp = "Player"; 
                     uint64_t playerinfo = *(uint64_t*)(cPed + Address::Get()->m_pPlayerInfo);
                     if (playerinfo) {
-                        int netid = *(uint64_t*)(playerinfo + Address::Get()->m_pNetid);
-                        std::string name = Address::Get()->GetPlayerNameByNetId(netid);
-                        if (name != "NPC" && !name.empty()) {
-                            player_name_string_esp = name;
+                        std::string name = Address::Get()->GetPlayerNameFromInfo(playerinfo);
+                        if (name.empty() || name == "NPC") {
+                            int netid = *(uint64_t*)(playerinfo + Address::Get()->m_pNetid);
+                            name = Address::Get()->GetPlayerNameByNetId(netid);
+                            if ((name == "NPC" || name.empty()) && netid > 0) {
+                                name = "Player " + std::to_string(netid);
+                            }
                         }
-                        else if (netid > 0) {
-                            player_name_string_esp = "Player " + std::to_string(netid);
+                        if (!name.empty() && name != "NPC") {
+                            player_name_string_esp = name;
                         }
                     }
                     ImVec2 screenNamePos(head1.x, head1.y - 15);

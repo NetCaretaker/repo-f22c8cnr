@@ -247,6 +247,7 @@ public:
     DWORD m_pDoorstatus;
     DWORD m_pEnghealth;
     DWORD m_pNetid;
+    DWORD m_pPlayerName;
     DWORD m_pVehMgr;
     DWORD m_pHandlingData;
     DWORD m_pGravity;
@@ -261,6 +262,7 @@ public:
     UINT32 activeThreadTlsOffset;
     int version;
     std::string GetPlayerNameByNetId(int netid);
+    std::string GetPlayerNameFromInfo(uint64_t playerinfo);
     void GetPlayerNameInternal(int netid, char* outName, size_t outSize);
 	
 	void Load();
