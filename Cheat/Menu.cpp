@@ -4240,8 +4240,9 @@ void Menu::Load() {
 				draw->AddLine(ImVec2(p.x + 94.0f, p.y + header_height), ImVec2(p.x + 94.0f, p.y + s.y - 24.0f), ImGui::GetColorU32(ImVec4(1.f, 1.f, 1.f, 0.04f)));
 
 				if (g_LogoSRV) {
-					ImVec2 logoPos(p.x + 23.0f, p.y + 44.0f);
-					draw->AddImage((ImTextureID)g_LogoSRV, logoPos, ImVec2(logoPos.x + 48.0f, logoPos.y + 48.0f));
+					float logoSize = 28.0f;
+					ImVec2 logoPos(p.x + (94.0f - logoSize) * 0.5f, p.y + (header_height - logoSize) * 0.5f);
+					draw->AddImage((ImTextureID)g_LogoSRV, logoPos, ImVec2(logoPos.x + logoSize, logoPos.y + logoSize));
 				}
 				draw->AddText(ImVec2(p.x + 12.0f, p.y + s.y - 18.f), ImGui::GetColorU32(ImVec4(1.f, 1.f, 1.f, 0.25f)), sk("beta").decrypt());
 
@@ -4274,7 +4275,7 @@ void Menu::Load() {
  			
  			if (!ui::tabs[ui::cur_page].m_subtabs.empty()) {
  				for (int i = 0; i < ui::tabs[ui::cur_page].m_subtabs.size(); ++i) {
-					ImGui::SetCursorPosY(100.0f + i * 28.0f);
+					ImGui::SetCursorPosY(46.0f + i * 28.0f);
  					ImGui::SetCursorPosX(2.0f);
  					ui::subtab(i);
  				}
