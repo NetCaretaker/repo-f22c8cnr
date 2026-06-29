@@ -1,0 +1,197 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <VCProjectVersion>17.0</VCProjectVersion>
+    <Keyword>Win32Proj</Keyword>
+    <ProjectGuid>{A4958519-AD57-4455-AAFE-819394CDCB84}</ProjectGuid>
+    <RootNamespace>ChameleoSDK</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+    <ProjectName>ChameleoSDK</ProjectName>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <AdditionalIncludeDirectories>$(ProjectDir)CppSDK;$(ProjectDir)CppSDK\SDK;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <TreatWarningAsError>false</TreatWarningAsError>
+      <DisableSpecificWarnings>4005;4099;4200;4267;4244;4302;4311;4312;4333;4838;4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+    </ClCompile>
+    <Lib>
+      <AdditionalDependencies>
+      </AdditionalDependencies>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <AdditionalIncludeDirectories>$(ProjectDir)CppSDK;$(ProjectDir)CppSDK\SDK;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <TreatWarningAsError>false</TreatWarningAsError>
+      <DisableSpecificWarnings>4005;4099;4200;4267;4244;4302;4311;4312;4333;4838;4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+    </ClCompile>
+    <Lib>
+      <AdditionalDependencies>
+      </AdditionalDependencies>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="CppSDK\SDK\ABP_Bell_functions.cpp" />
+    <ClCompile Include="CppSDK\SDK\ABP_BigPen_functions.cpp" />
+    <ClCompile Include="CppSDK\SDK\ABP_EnemyPenguin_functions.cpp" />
+    <ClCompile Include="CppSDK\SDK\ABP_FPS_HandBone_Ver2_Skeletal_functions.cpp" />
+    <ClCompile Include="CppSDK\SDK\ABP_LINK_Penguin_V2_functions.cpp" />
+    <ClCompile Include="CppSDK\SDK\ABP_MagicHand_functions.cpp" />
+    <ClCompile Include="CppSDK\SDK\ABP_MiniPenguin_functions.cpp" />
+    <ClCompile Include="CppSDK\SDK\ABP_Penguin_functions.cpp" />
+    <ClCompile Include="CppSDK\SDK\ACLPlugin_functions.cpp" />
+    <ClCompile Include="CppSDK\SDK\AIModule_functions.cpp" />
+    <ClCompile Include="CppSDK\SDK\ANS_BrunchAttack_functions.cpp" />
+    <ClCompile Include="CppSDK\SDK\ANS_ReadyAttack_functions.cpp" />
+    <ClCompile Include="CppSDK\SDK\ANT_AttackNotify_functions.cpp" />
+    <ClCompile Include="CppSDK\SDK\ANT_MovementState_functions.cpp" />
+    <ClCompile Include="CppSDK\SDK\ActorLayerUtilities_functions.cpp" />
+    <ClCompile Include="CppSDK\SDK\ActorSequence_functions.cpp" />
+    <ClCompile Include="CppSDK\SDK\AdvancedWidgets_functions.cpp" />
+    <ClCompile Include="CppSDK\SDK\AndroidFileServer_functions.cpp" />
+    <ClCompile Include="CppSDK\SDK\AndroidPermission_functions.cpp" />
+    <ClCompile Include="CppSDK\SDK\AnimGraphRuntime_functions.cpp" />
+    <ClCompile Include="CppSDK\SDK\AnimationSharing_functions.cpp" />
+    <ClCompile Include="CppSDK\SDK\AnimationWarpingRuntime_functions.cpp" />
+    <ClCompile Include="CppSDK\SDK\Animnotify_PlayfootSteps_functions.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="CppSDK\PropertyFixup.hpp" />
+    <ClInclude Include="CppSDK\SDK\ABP_Bell_classes.hpp" />
+    <ClInclude Include="CppSDK\SDK\ABP_Bell_parameters.hpp" />
+    <ClInclude Include="CppSDK\SDK\ABP_Bell_structs.hpp" />
+    <ClInclude Include="CppSDK\SDK\ABP_BigPen_classes.hpp" />
+    <ClInclude Include="CppSDK\SDK\ABP_BigPen_parameters.hpp" />
+    <ClInclude Include="CppSDK\SDK\ABP_BigPen_structs.hpp" />
+    <ClInclude Include="CppSDK\SDK\ABP_EnemyPenguin_classes.hpp" />
+    <ClInclude Include="CppSDK\SDK\ABP_EnemyPenguin_parameters.hpp" />
+    <ClInclude Include="CppSDK\SDK\ABP_EnemyPenguin_structs.hpp" />
+    <ClInclude Include="CppSDK\SDK\ABP_FPS_HandBone_Ver2_Skeletal_classes.hpp" />
+    <ClInclude Include="CppSDK\SDK\ABP_FPS_HandBone_Ver2_Skeletal_parameters.hpp" />
+    <ClInclude Include="CppSDK\SDK\ABP_FPS_HandBone_Ver2_Skeletal_structs.hpp" />
+    <ClInclude Include="CppSDK\SDK\ABP_LINK_Penguin_V2_classes.hpp" />
+    <ClInclude Include="CppSDK\SDK\ABP_LINK_Penguin_V2_parameters.hpp" />
+    <ClInclude Include="CppSDK\SDK\ABP_LINK_Penguin_V2_structs.hpp" />
+    <ClInclude Include="CppSDK\SDK\ABP_MagicHand_classes.hpp" />
+    <ClInclude Include="CppSDK\SDK\ABP_MagicHand_parameters.hpp" />
+    <ClInclude Include="CppSDK\SDK\ABP_MagicHand_structs.hpp" />
+    <ClInclude Include="CppSDK\SDK\ABP_MiniPenguin_classes.hpp" />
+    <ClInclude Include="CppSDK\SDK\ABP_MiniPenguin_parameters.hpp" />
+    <ClInclude Include="CppSDK\SDK\ABP_MiniPenguin_structs.hpp" />
+    <ClInclude Include="CppSDK\SDK\ABP_Penguin_classes.hpp" />
+    <ClInclude Include="CppSDK\SDK\ABP_Penguin_parameters.hpp" />
+    <ClInclude Include="CppSDK\SDK\ABP_Penguin_structs.hpp" />
+    <ClInclude Include="CppSDK\SDK\ACLPlugin_classes.hpp" />
+    <ClInclude Include="CppSDK\SDK\ACLPlugin_parameters.hpp" />
+    <ClInclude Include="CppSDK\SDK\ACLPlugin_structs.hpp" />
+    <ClInclude Include="CppSDK\SDK\AESGCMHandlerComponent_structs.hpp" />
+    <ClInclude Include="CppSDK\SDK\AIModule_classes.hpp" />
+    <ClInclude Include="CppSDK\SDK\AIModule_parameters.hpp" />
+    <ClInclude Include="CppSDK\SDK\AIModule_structs.hpp" />
+    <ClInclude Include="CppSDK\SDK\ANS_BrunchAttack_classes.hpp" />
+    <ClInclude Include="CppSDK\SDK\ANS_BrunchAttack_parameters.hpp" />
+    <ClInclude Include="CppSDK\SDK\ANS_ReadyAttack_classes.hpp" />
+    <ClInclude Include="CppSDK\SDK\ANS_ReadyAttack_parameters.hpp" />
+    <ClInclude Include="CppSDK\SDK\ANT_AttackNotify_classes.hpp" />
+    <ClInclude Include="CppSDK\SDK\ANT_AttackNotify_parameters.hpp" />
+    <ClInclude Include="CppSDK\SDK\ANT_MovementState_classes.hpp" />
+    <ClInclude Include="CppSDK\SDK\ANT_MovementState_parameters.hpp" />
+    <ClInclude Include="CppSDK\SDK\ActorLayerUtilities_classes.hpp" />
+    <ClInclude Include="CppSDK\SDK\ActorLayerUtilities_parameters.hpp" />
+    <ClInclude Include="CppSDK\SDK\ActorLayerUtilities_structs.hpp" />
+    <ClInclude Include="CppSDK\SDK\ActorSequence_classes.hpp" />
+    <ClInclude Include="CppSDK\SDK\ActorSequence_structs.hpp" />
+    <ClInclude Include="CppSDK\SDK\AdvancedWidgets_classes.hpp" />
+    <ClInclude Include="CppSDK\SDK\AdvancedWidgets_parameters.hpp" />
+    <ClInclude Include="CppSDK\SDK\AdvancedWidgets_structs.hpp" />
+    <ClInclude Include="CppSDK\SDK\AndroidFileServer_classes.hpp" />
+    <ClInclude Include="CppSDK\SDK\AndroidFileServer_parameters.hpp" />
+    <ClInclude Include="CppSDK\SDK\AndroidFileServer_structs.hpp" />
+    <ClInclude Include="CppSDK\SDK\AndroidPermission_classes.hpp" />
+    <ClInclude Include="CppSDK\SDK\AndroidPermission_parameters.hpp" />
+    <ClInclude Include="CppSDK\SDK\AnimGraphRuntime_classes.hpp" />
+    <ClInclude Include="CppSDK\SDK\AnimGraphRuntime_parameters.hpp" />
+    <ClInclude Include="CppSDK\SDK\AnimGraphRuntime_structs.hpp" />
+    <ClInclude Include="CppSDK\SDK\AnimationCore_classes.hpp" />
+    <ClInclude Include="CppSDK\SDK\AnimationCore_structs.hpp" />
+    <ClInclude Include="CppSDK\SDK\AnimationSharing_classes.hpp" />
+    <ClInclude Include="CppSDK\SDK\AnimationSharing_parameters.hpp" />
+    <ClInclude Include="CppSDK\SDK\AnimationSharing_structs.hpp" />
+    <ClInclude Include="CppSDK\SDK\AnimationWarpingRuntime_classes.hpp" />
+    <ClInclude Include="CppSDK\SDK\AnimationWarpingRuntime_parameters.hpp" />
+    <ClInclude Include="CppSDK\SDK\AnimationWarpingRuntime_structs.hpp" />
+    <ClInclude Include="CppSDK\SDK\Animnotify_PlayfootSteps_classes.hpp" />
+    <ClInclude Include="CppSDK\SDK\Animnotify_PlayfootSteps_parameters.hpp" />
+    <ClInclude Include="CppSDK\SDK\AppleImageUtils_classes.hpp" />
+    <ClInclude Include="CppSDK\SDK\Basic.hpp" />
+    <ClInclude Include="CppSDK\SDK\ControlRig_structs.hpp" />
+    <ClInclude Include="CppSDK\SDK\CoreUObject_classes.hpp" />
+    <ClInclude Include="CppSDK\SDK\CoreUObject_structs.hpp" />
+    <ClInclude Include="CppSDK\SDK\Engine_classes.hpp" />
+    <ClInclude Include="CppSDK\SDK\Engine_structs.hpp" />
+    <ClInclude Include="CppSDK\SDK\GameplayTags_structs.hpp" />
+    <ClInclude Include="CppSDK\SDK\GameplayTasks_classes.hpp" />
+    <ClInclude Include="CppSDK\SDK\GameplayTasks_structs.hpp" />
+    <ClInclude Include="CppSDK\SDK\MovieScene_classes.hpp" />
+    <ClInclude Include="CppSDK\SDK\MovieScene_structs.hpp" />
+    <ClInclude Include="CppSDK\SDK\NavigationSystem_classes.hpp" />
+    <ClInclude Include="CppSDK\SDK\PhysicsCore_structs.hpp" />
+    <ClInclude Include="CppSDK\SDK\SlateCore_structs.hpp" />
+    <ClInclude Include="CppSDK\SDK\UMG_classes.hpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="CppSDK\Assertions.inl" />
+    <None Include="CppSDK\NameCollisions.inl" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>
