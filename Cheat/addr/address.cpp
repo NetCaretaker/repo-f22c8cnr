@@ -697,14 +697,14 @@ void Address::Load() {
 }
 
 void Address::GetPlayerNameInternal(int netid, char* outName, size_t outSize) {
+    uintptr_t baseAddr = s_pPlayerNamesList;
+    if (!baseAddr) {
+        auto dllName = sk("citizen-playernames-five.dll");
+        uintptr_t playernames = (uintptr_t)GetModuleHandleA(dllName);
+        if (playernames) baseAddr = playernames + 0x30D98;
+    }
+    if (!baseAddr) return;
     __try {
-        uintptr_t baseAddr = s_pPlayerNamesList;
-
-        if (!baseAddr) {
-            uintptr_t playernames = (uintptr_t)GetModuleHandleA(sk("citizen-playernames-five.dll"));
-            if (playernames) baseAddr = playernames + 0x30D98;
-        }
-        if (!baseAddr) return;
 
         if (IsBadReadPtr((void*)baseAddr, sizeof(uintptr_t) + sizeof(int))) return;
 
