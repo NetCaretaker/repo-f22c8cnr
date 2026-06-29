@@ -16,8 +16,8 @@ bool ui::tab(int num) {
     const ImVec2 label_size = CalcTextSize(label, NULL, true);
     ImVec2 pos = window->DC.CursorPos;
 
-    const float tab_height = 30.0f;
-    const float tab_w = 90.0f;
+    const float tab_height = 38.0f;
+    const float tab_w = 100.0f;
     const ImRect rect(pos, ImVec2(pos.x + tab_w, pos.y + tab_height));
     
     ItemSize(rect, style.FramePadding.y);

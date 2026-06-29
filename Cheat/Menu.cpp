@@ -4108,23 +4108,9 @@ void Menu::Load() {
 			if (!HasSafeSessionContext())
 				s_luaTabConfirmed = false;
 
-			float tabs_total_width = 0.0f;
-			for (int i = 0; i < ui::tabs.size(); ++i) {
-				const ImVec2 label_size = ImGui::CalcTextSize(ui::tabs[i].m_icon);
-				tabs_total_width += label_size.x + 28.0f;
-				if (i + 1 < ui::tabs.size())
-					tabs_total_width += 12.0f;
-			}
-
-			const float header_left = 146.0f;
-			const float header_right = ui::size.x - 18.0f;
-			float tabs_start_x = header_left + ((header_right - header_left) - tabs_total_width) * 0.5f;
-			if (tabs_start_x < header_left)
-				tabs_start_x = header_left;
-
-			ImGui::SetCursorPos(ImVec2(tabs_start_x, 16.0f));
+			ImGui::SetCursorPos(ImVec2(60.0f, 0.0f));
  			ImGui::BeginGroup();
- 			ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(12, 0));
+ 			ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
  			for (int i = 0; i < ui::tabs.size(); ++i) {
  				ui::tab(i);
 				if (i + 1 < ui::tabs.size())
