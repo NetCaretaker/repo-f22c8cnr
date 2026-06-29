@@ -43,8 +43,7 @@ bool ui::tab(int num) {
     float text_alpha = selected ? 1.0f : (hovered ? 0.7f : 0.4f);
     ImU32 text_col = GetColorU32(ImVec4(1.f, 1.f, 1.f, text_alpha));
 
-    if (hovered && !selected)
-        window->DrawList->AddRectFilled(rect.Min, rect.Max, GetColorU32(ImVec4(1.f, 1.f, 1.f, 0.02f)), 6.0f);
+    (void)hovered;
 
     ImVec2 text_pos = ImVec2(rect.Min.x + (rect.GetWidth() - label_size.x) * 0.5f, rect.Min.y + (rect.GetHeight() - label_size.y) * 0.5f);
     window->DrawList->AddText(text_pos, text_col, label);
