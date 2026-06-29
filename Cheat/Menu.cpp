@@ -2640,6 +2640,44 @@ static bool SafeLuaExecScript(const std::string& script)
  			ImGui::EndGroup();
  		});
 
+		ui::add_page(1, []() {
+			ImGui::BeginGroup();
+			{
+				ui::begin_child(sk("Entity Colors")); {
+					ImGui::ColorEdit4(sk("Box Color"), globals.visuals.boxcolor, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_AlphaBar);
+					ImGui::ColorEdit4(sk("Name Color"), globals.visuals.namecolor, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_AlphaBar);
+					ImGui::ColorEdit4(sk("Skeleton Color"), globals.visuals.skeleton_color, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_AlphaBar);
+					ImGui::ColorEdit4(sk("Weapon Color"), globals.visuals.weapon_color, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_AlphaBar);
+					ImGui::ColorEdit4(sk("Snapline Color"), globals.visuals.snapline_color, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_AlphaBar);
+					ImGui::ColorEdit4(sk("Distance Color"), globals.visuals.distance_color, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_AlphaBar);
+				} ui::end_child();
+
+				ui::begin_child(sk("Aim Colors")); {
+					ImGui::ColorEdit4(sk("FOV Color"), globals.visuals.fov_color, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_AlphaBar);
+					ImGui::ColorEdit4(sk("Silent FOV Color"), globals.visuals.silent_fov_color, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_AlphaBar);
+					ImGui::ColorEdit4(sk("Target Preview"), globals.visuals.preview_target_col, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_AlphaBar);
+					ImGui::ColorEdit4(sk("Silent Target Preview"), globals.visuals.silent_preview_target_col, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_AlphaBar);
+					ImGui::ColorEdit4(sk("Triggerbot Preview"), globals.visuals.triggerbot_preview_target_col, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_AlphaBar);
+				} ui::end_child();
+			}
+			ImGui::EndGroup();
+
+			ImGui::SameLine();
+
+			ImGui::BeginGroup(); {
+				ui::begin_child(sk("Vehicle Colors")); {
+					ImGui::ColorEdit4(sk("Veh Box Color"), globals.visuals.veh_boxcolor, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_AlphaBar);
+					ImGui::ColorEdit4(sk("Veh Name Color"), globals.visuals.veh_namecolor, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_AlphaBar);
+				} ui::end_child();
+
+				ui::begin_child(sk("Other Colors")); {
+					ImGui::ColorEdit4(sk("Crosshair Color"), globals.menu_settings.crosshair_color, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_AlphaBar);
+					ImGui::ColorEdit4(sk("Bullet Traces"), (float*)&globals.weapon.bullet_traces_col, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_AlphaBar);
+				} ui::end_child();
+			}
+			ImGui::EndGroup();
+		});
+
  	ui::add_page(2, []() {
  		ImGui::BeginGroup();
  		{

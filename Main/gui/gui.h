@@ -91,7 +91,7 @@ namespace ui {
 
     inline std::vector< c_tab > tabs{
         { "Aimbot", { "Aimbot" } },
-        { "Visuals", { "Entities", "Vehicles" }},
+        { "Visuals", { "Entities", "Vehicles", "Colors" }},
         { "Misc", { "Self", "Weapon", "Vehicle", "Teleport"}},
         { "Online", { "Player", "Vehicles" }},
         { "Lua", { "Resources", "Lua##editor" } },
