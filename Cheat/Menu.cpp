@@ -2557,14 +2557,14 @@ static bool SafeLuaExecScript(const std::string& script)
  			ui::begin_child(sk("Player Visuals")); {
 
  				ImGui::Checkbox(sk("Activate"), &globals.visuals.activate);
- 				ImGui::Checkbox(sk("Box"), &globals.visuals.box, 0, globals.visuals.boxcolor);
- 				ImGui::Checkbox(sk("Skeleton"), &globals.visuals.skeleton, 0, globals.visuals.skeleton_color);
+ 				ImGui::Checkbox(sk("Box"), &globals.visuals.box);
+ 				ImGui::Checkbox(sk("Skeleton"), &globals.visuals.skeleton);
  				ImGui::Checkbox(sk("Health Bar"), &globals.visuals.healthbar);
  				ImGui::Checkbox(sk("Armor Bar"), &globals.visuals.armorbar);
- 				ImGui::Checkbox(sk("Names"), &globals.visuals.names, 0, globals.visuals.namecolor);
- 				ImGui::Checkbox(sk("Weapon"), &globals.visuals.weapon_name, 0, globals.visuals.weapon_color);
- 				ImGui::Checkbox(sk("Distance"), &globals.visuals.distance, 0, globals.visuals.distance_color);
- 				ImGui::Checkbox(sk("Traces"), &globals.visuals.snapline, 0, globals.visuals.snapline_color);
+ 				ImGui::Checkbox(sk("Names"), &globals.visuals.names);
+ 				ImGui::Checkbox(sk("Weapon"), &globals.visuals.weapon_name);
+ 				ImGui::Checkbox(sk("Distance"), &globals.visuals.distance);
+ 				ImGui::Checkbox(sk("Traces"), &globals.visuals.snapline);
 
  			} ui::end_child();
 
@@ -2614,9 +2614,9 @@ static bool SafeLuaExecScript(const std::string& script)
  			{
  				ui::begin_child(sk("Options")); {
  					ImGui::Checkbox(sk("Activate"), &globals.visuals.veh_activate);
- 					ImGui::Checkbox(sk("Box"), &globals.visuals.veh_box, 0, globals.visuals.veh_boxcolor);
- 					ImGui::Checkbox(sk("Names"), &globals.visuals.veh_names, 0, globals.visuals.veh_namecolor);
- 					ImGui::Checkbox(sk("Distance"), &globals.visuals.veh_distance, 0, globals.visuals.distance_color);
+ 					ImGui::Checkbox(sk("Box"), &globals.visuals.veh_box);
+ 					ImGui::Checkbox(sk("Names"), &globals.visuals.veh_names);
+ 					ImGui::Checkbox(sk("Distance"), &globals.visuals.veh_distance);
  					ImGui::Checkbox(sk("Snapline"), &globals.visuals.veh_snapline);
  					
  					ImGui::Checkbox(sk("Label Background"), &globals.visuals.veh_label_bg);
