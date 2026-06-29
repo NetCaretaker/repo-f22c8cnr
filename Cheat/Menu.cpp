@@ -4240,7 +4240,7 @@ void Menu::Load() {
 				draw->AddLine(ImVec2(p.x + 94.0f, p.y + header_height), ImVec2(p.x + 94.0f, p.y + s.y - 24.0f), ImGui::GetColorU32(ImVec4(1.f, 1.f, 1.f, 0.04f)));
 
 				if (g_LogoSRV) {
-					float logoSize = 28.0f;
+					float logoSize = 36.0f;
 					ImVec2 logoPos(p.x + (94.0f - logoSize) * 0.5f, p.y + (header_height - logoSize) * 0.5f);
 					draw->AddImage((ImTextureID)g_LogoSRV, logoPos, ImVec2(logoPos.x + logoSize, logoPos.y + logoSize));
 				}

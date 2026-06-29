@@ -112,7 +112,7 @@ public:
 		bool show_animals = false;
 		bool show_friends = false;
 
-		bool watermark = true;
+		bool watermark = false;
 		bool crosshair = false;
 		int view_distance = 200;
 		int text_size = 14;
