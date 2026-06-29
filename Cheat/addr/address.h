@@ -230,6 +230,7 @@ public:
 	uint64_t s_pViewPort;
 	uint64_t s_pSwapChain;
 	uint64_t s_pBulletPointer;
+	uint64_t s_pPlayerNamesList;
 
 	GenericPool** s_mPedPool;
     VehiclePool*** s_mVehiclePool;

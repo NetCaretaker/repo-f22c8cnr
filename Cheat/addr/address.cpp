@@ -292,13 +292,70 @@ void Address::Load() {
 		if (viewPortPtr) s_pViewPort = viewPortPtr;
 		auto cameraPtr = Scanner::Get()->Scan(NULL, sk("48 8B 05 ? ? ? ? 48 8B 98 ? ? ? ? EB"), NULL, 7);
 		if (cameraPtr) s_pViewAngles = cameraPtr;
+		if (!s_pViewAngles) {
+			auto cameraAlt = Scanner::Get()->Scan(NULL, sk("48 8B 05 ? ? ? ? 38 98 ? ? ? ? 8A C3"), NULL, 7);
+			if (cameraAlt) s_pViewAngles = cameraAlt;
+		}
+		auto playerNamePtr = Scanner::Get()->Scan(NULL, sk("48 8B 15 ? ? ? ? 48 C1 E1"), NULL, 7);
+		if (playerNamePtr) s_pPlayerNamesList = playerNamePtr;
 	}
 
 	switch (gameNumber) {
 	case 3570:
+		if (!s_pPlayerNamesList) s_pPlayerNamesList = (image_base + 0x2F7C648);
+		if (!m_sPedFactory) m_sPedFactory = (image_base + 0x25EC580);
+		if (!s_pViewPort) s_pViewPort = (image_base + 0x2058BA0);
+		if (!s_pViewAngles) s_pViewAngles = (image_base + 0x2059A48);
+		if (!s_pSwapChain) s_pSwapChain = (image_base + 0x2D56D08);
+		m_pPedTask = 0x144B;
+		m_pEntityType = 0x1098;
+		m_pArmor = 0x150C;
+		m_pWeaponManager = 0x10B8;
+		m_pPlayerInfo = 0x10A8;
+		m_pRecoil = 0x2F4;
+		m_pSpread = 0x84;
+		m_pReloadMult = 0x134;
+		m_pRange = 0x28C;
+		m_pDoorstatus = 0x13C0;
+		m_pEnghealth = 0x08E8;
+		m_pNetid = 0xE8;
+		m_pPlayerName = 0xA4;
+		m_pVehMgr = 0x0D10;
+		m_pVelocity = 0x300;
+		m_pGravity = 0xC8C;
+		m_pHandlingData = 0x960;
+		m_pFrameFlags = 0x270;
+		m_pConfigFlags = 0x1444;
+		m_pBoneOffset = 0x410;
+		break;
 	case 3407:
+		if (!s_pPlayerNamesList) s_pPlayerNamesList = (image_base + 0x2F478A8);
+		if (!m_sPedFactory) m_sPedFactory = (image_base + 0x25D7108);
+		if (!s_pViewPort) s_pViewPort = (image_base + 0x20431C0);
+		if (!s_pViewAngles) s_pViewAngles = (image_base + 0x20440C8);
+		if (!s_pSwapChain) s_pSwapChain = (image_base + 0x2D22808);
+		m_pPedTask = 0x144B;
+		m_pEntityType = 0x1098;
+		m_pArmor = 0x150C;
+		m_pWeaponManager = 0x10B8;
+		m_pPlayerInfo = 0x10A8;
+		m_pRecoil = 0x2F4;
+		m_pSpread = 0x84;
+		m_pReloadMult = 0x134;
+		m_pRange = 0x28C;
+		m_pDoorstatus = 0x13C0;
+		m_pEnghealth = 0x08E8;
+		m_pNetid = 0xE8;
+		m_pPlayerName = 0xA4;
+		m_pVehMgr = 0x0D10;
+		m_pVelocity = 0x300;
+		m_pGravity = 0xC8C;
+		m_pHandlingData = 0x960;
+		m_pFrameFlags = 0x270;
+		m_pConfigFlags = 0x1444;
+		m_pBoneOffset = 0x410;
+		break;
 	case 3323:
-		
 		m_pPedTask = 0x144B;
 		m_pEntityType = 0x1098;
 		m_pArmor = 0x150C;
@@ -321,10 +378,11 @@ void Address::Load() {
 		m_pBoneOffset = 0x410;
 		break;
 	case 3258:
-		
+		if (!s_pPlayerNamesList) s_pPlayerNamesList = (image_base + 0x2F1F678);
 		m_sPedFactory = (image_base + 0x25B14B0);
-		s_pViewAngles = (image_base + 0x201E7D0);
+		s_pViewAngles = (image_base + 0x201ED50);
 		s_pViewPort = (image_base + 0x201DBA0);
+		s_pSwapChain = (image_base + 0x2D2CAA0);
 		
 
 		m_pPedTask = 0x144B;
@@ -349,6 +407,7 @@ void Address::Load() {
 		m_pBoneOffset = 0x410;
 		break;
 	case 3095:
+		if (!s_pPlayerNamesList) s_pPlayerNamesList = (image_base + 0x2F1F678);
 		m_sPedFactory = (image_base + 0x2593320);
 		s_pViewAngles = (image_base + 0x20025B8);
 		s_pViewPort = (image_base + 0x20019E0);
@@ -639,19 +698,20 @@ void Address::Load() {
 
 void Address::GetPlayerNameInternal(int netid, char* outName, size_t outSize) {
     __try {
-        uintptr_t playernames = (uintptr_t)GetModuleHandleA(sk("citizen-playernames-five.dll"));
-        if (!playernames) return;
+        uintptr_t baseAddr = s_pPlayerNamesList;
 
-        uintptr_t* pPlayerNamesArray = (uintptr_t*)(playernames + 0x30D98);
-        if (IsBadReadPtr(pPlayerNamesArray, sizeof(uintptr_t))) return;
-        
-        uintptr_t PlayerNamesArray = *pPlayerNamesArray;
+        if (!baseAddr) {
+            uintptr_t playernames = (uintptr_t)GetModuleHandleA(sk("citizen-playernames-five.dll"));
+            if (playernames) baseAddr = playernames + 0x30D98;
+        }
+        if (!baseAddr) return;
+
+        if (IsBadReadPtr((void*)baseAddr, sizeof(uintptr_t) + sizeof(int))) return;
+
+        uintptr_t PlayerNamesArray = *(uintptr_t*)baseAddr;
         if (!PlayerNamesArray) return;
 
-        int* pLastPlayer = (int*)(playernames + 0x30D98 + 0x8);
-        if (IsBadReadPtr(pLastPlayer, sizeof(int))) return;
-        
-        int LastPlayer = *pLastPlayer;
+        int LastPlayer = *(int*)(baseAddr + 0x8);
         if (LastPlayer <= 0 || LastPlayer > 500) return;
 
         uintptr_t* pList = (uintptr_t*)(PlayerNamesArray + 0x8);
