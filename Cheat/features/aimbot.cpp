@@ -51,6 +51,41 @@ namespace game_function {
 
 bool hooked = false;
 
+static bool IsTargetVisible(uint64_t localplayer, uint64_t targetPed) {
+    __try {
+        // Get camera position as ray origin
+        DWORD64 camera_addr = Core::Get()->GetCamera();
+        if (!camera_addr) return true; // default to visible if can't check
+
+        Vector3 cam_pos = *(Vector3*)(camera_addr + 0x60);
+        
+        // Get target head bone position
+        Vector3 target_pos = Core::Get()->BoneVec(targetPed, 0);
+        target_pos.z += 0.06f;
+
+        // Use the raycast function if available
+        if (MemoryAddress::raycast) {
+            PVector3 start(cam_pos.x, cam_pos.y, cam_pos.z);
+            PVector3 end(target_pos.x, target_pos.y, target_pos.z);
+            // Cast ray from camera to target, flags=1 (world geometry), ignore local player
+            MemoryAddress::raycast(&start, &end, 1, localplayer, 7);
+            
+            // If the ray end position changed significantly, something is blocking
+            float dx = end.x - target_pos.x;
+            float dy = end.y - target_pos.y;
+            float dz = end.z - target_pos.z;
+            float hitDist = sqrtf(dx * dx + dy * dy + dz * dz);
+            
+            // If hit point is more than 2m from target, not visible
+            if (hitDist > 2.0f) return false;
+        }
+        return true;
+    }
+    __except(EXCEPTION_EXECUTE_HANDLER) {
+        return true; // default to visible on exception
+    }
+}
+
 void Aimbot::SetAngles(Vector3 targetpoint) {
     uint64_t pedfactory = *(uint64_t*)(Address::Get()->m_sPedFactory);
     if (!pedfactory) return;
@@ -302,6 +337,12 @@ uint64_t Aimbot::GetEntity() {
         double max_dist = sqrtf(dist_calc.x * dist_calc.x + dist_calc.y * dist_calc.y + dist_calc.z * dist_calc.z);
 
         if (max_dist <= globals.aimbot.max_dist) {
+            // Visible only filter
+            if (globals.aimbot.visible_only) {
+                if (!IsTargetVisible(localplayer, cPed))
+                    continue;
+            }
+
             Vector3 bone_vec = Core::Get()->BoneVec(cPed, 0);
             ImVec2 head = Core::Get()->W2S(bone_vec);
             ImVec2 crosshair_pos = ImVec2(ImGui::GetIO().DisplaySize.x / 2, ImGui::GetIO().DisplaySize.y / 2);

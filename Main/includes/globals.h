@@ -54,6 +54,7 @@ public:
 		bool closest_bone = false;
 		bool draw_aim_line = false;
 		bool avoid_repeats = false;
+		bool visible_only = false;
 		int target_priority = 0; 
 
 

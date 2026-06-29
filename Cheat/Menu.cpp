@@ -247,6 +247,7 @@ static json SerializeGlobals()
 		{"point_npcs", globals.aimbot.point_npcs},
 		{"point_dead", globals.aimbot.point_dead},
 		{"point_animals", globals.aimbot.point_animals},
+		{"visible_only", globals.aimbot.visible_only},
 		{"max_dist", globals.aimbot.max_dist},
 		{"smooth", globals.aimbot.smooth},
 		{"fov", globals.aimbot.fov},
@@ -446,6 +447,7 @@ static void DeserializeGlobals(const json& j)
 		globals.aimbot.point_npcs = a.value("point_npcs", globals.aimbot.point_npcs);
 		globals.aimbot.point_dead = a.value("point_dead", globals.aimbot.point_dead);
 		globals.aimbot.point_animals = a.value("point_animals", globals.aimbot.point_animals);
+		globals.aimbot.visible_only = a.value("visible_only", globals.aimbot.visible_only);
 		globals.aimbot.max_dist = a.value("max_dist", globals.aimbot.max_dist);
 		globals.aimbot.smooth = a.value("smooth", globals.aimbot.smooth);
 		globals.aimbot.fov = a.value("fov", globals.aimbot.fov);
@@ -2517,6 +2519,7 @@ static bool SafeLuaExecScript(const std::string& script)
  				ImGui::Checkbox(sk("Point NPCs"), &globals.aimbot.point_npcs);
  				ImGui::Checkbox(sk("Point Dead"), &globals.aimbot.point_dead);
  				ImGui::Checkbox(sk("Point Animals"), &globals.aimbot.point_animals);
+ 				ImGui::Checkbox(sk("Visible Only"), &globals.aimbot.visible_only);
 
  			} ui::end_child();
  		}
