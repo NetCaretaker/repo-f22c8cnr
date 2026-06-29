@@ -16,7 +16,7 @@ bool ui::tab(int num) {
     const ImVec2 label_size = CalcTextSize(label, NULL, true);
     ImVec2 pos = window->DC.CursorPos;
 
-    const float tab_height = 30.0f;
+    const float tab_height = 32.0f;
     const float tab_w = ui::tab_width;
     const ImRect rect(pos, ImVec2(pos.x + tab_w, pos.y + tab_height));
     
@@ -43,20 +43,33 @@ bool ui::tab(int num) {
     float text_alpha = selected ? 1.0f : (hovered ? 0.7f : 0.4f);
     ImU32 text_col = GetColorU32(ImVec4(1.f, 1.f, 1.f, text_alpha));
 
-    (void)hovered;
+    // Square background for selected/hovered
+    if (sel_a > 0.01f) {
+        window->DrawList->AddRectFilled(
+            rect.Min, rect.Max,
+            GetColorU32(ImVec4(accent.x, accent.y, accent.z, 0.12f * sel_a)),
+            0.0f
+        );
+    }
+    if (hovered && !selected) {
+        window->DrawList->AddRectFilled(
+            rect.Min, rect.Max,
+            GetColorU32(ImVec4(1.f, 1.f, 1.f, 0.04f)),
+            0.0f
+        );
+    }
 
     ImVec2 text_pos = ImVec2(rect.Min.x + (rect.GetWidth() - label_size.x) * 0.5f, rect.Min.y + (rect.GetHeight() - label_size.y) * 0.5f);
     window->DrawList->AddText(text_pos, text_col, label);
 
+    // Bottom line indicator
     if (sel_a > 0.01f) {
-        float line_w = 16.0f * sel_a;
-        float line_x = rect.Min.x + (rect.GetWidth() - line_w) * 0.5f;
-        float line_y = rect.Max.y - 1.0f;
+        float line_y = rect.Max.y - 2.0f;
         window->DrawList->AddRectFilled(
-            ImVec2(line_x, line_y),
-            ImVec2(line_x + line_w, line_y + 2.0f),
+            ImVec2(rect.Min.x, line_y),
+            ImVec2(rect.Max.x, line_y + 2.0f),
             GetColorU32(ImVec4(accent.x, accent.y, accent.z, sel_a)),
-            1.0f
+            0.0f
         );
     }
 
@@ -76,7 +89,7 @@ bool ui::subtab(int num) {
     const ImVec2 label_size = CalcTextSize(label, NULL, true);
     ImVec2 pos = window->DC.CursorPos;
 
-    const float tab_height = 24.0f;
+    const float tab_height = 26.0f;
     const float tab_w = 90.0f;
     const ImRect rect(pos, ImVec2(pos.x + tab_w, pos.y + tab_height));
     
@@ -102,18 +115,29 @@ bool ui::subtab(int num) {
     float text_alpha = selected ? 0.95f : (hovered ? 0.55f : 0.35f);
     ImU32 text_col = GetColorU32(ImVec4(1.f, 1.f, 1.f, text_alpha));
 
-    // No background fill on hover/selected — text opacity only
-    (void)hovered;
-
-    // Underline indicator (like tabs)
+    // Square background for selected/hovered
     if (sel_anim > 0.01f) {
-        float line_w = 16.0f * sel_anim;
-        float line_x = rect.Min.x + (rect.GetWidth() - line_w) * 0.5f;
-        float line_y = rect.Max.y - 1.0f;
         window->DrawList->AddRectFilled(
-            ImVec2(line_x, line_y),
-            ImVec2(line_x + line_w, line_y + 2.0f),
-            GetColorU32(ImVec4(accent.x, accent.y, accent.z, sel_anim)), 1.0f);
+            rect.Min, rect.Max,
+            GetColorU32(ImVec4(accent.x, accent.y, accent.z, 0.12f * sel_anim)),
+            0.0f
+        );
+    }
+    if (hovered && !selected) {
+        window->DrawList->AddRectFilled(
+            rect.Min, rect.Max,
+            GetColorU32(ImVec4(1.f, 1.f, 1.f, 0.04f)),
+            0.0f
+        );
+    }
+
+    // Left bar indicator
+    if (sel_anim > 0.01f) {
+        window->DrawList->AddRectFilled(
+            ImVec2(rect.Min.x, rect.Min.y + 4.0f),
+            ImVec2(rect.Min.x + 2.0f, rect.Max.y - 4.0f),
+            GetColorU32(ImVec4(accent.x, accent.y, accent.z, sel_anim)),
+            0.0f);
     }
 
     ImVec2 text_pos = ImVec2(rect.Min.x + (rect.GetWidth() - label_size.x) * 0.5f, rect.Min.y + (rect.GetHeight() - label_size.y) * 0.5f);
