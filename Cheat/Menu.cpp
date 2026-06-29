@@ -4240,8 +4240,8 @@ void Menu::Load() {
 				draw->AddLine(ImVec2(p.x + 94.0f, p.y + header_height), ImVec2(p.x + 94.0f, p.y + s.y - 24.0f), ImGui::GetColorU32(ImVec4(1.f, 1.f, 1.f, 0.04f)));
 
 				if (g_LogoSRV) {
-					ImVec2 logoPos(p.x + 31.0f, p.y + 7.0f);
-					draw->AddImage((ImTextureID)g_LogoSRV, logoPos, ImVec2(logoPos.x + 32.0f, logoPos.y + 32.0f));
+					ImVec2 logoPos(p.x + 23.0f, p.y + 44.0f);
+					draw->AddImage((ImTextureID)g_LogoSRV, logoPos, ImVec2(logoPos.x + 48.0f, logoPos.y + 48.0f));
 				}
 				draw->AddText(ImVec2(p.x + 12.0f, p.y + s.y - 18.f), ImGui::GetColorU32(ImVec4(1.f, 1.f, 1.f, 0.25f)), sk("beta").decrypt());
 
@@ -4254,11 +4254,11 @@ void Menu::Load() {
 				s_luaTabConfirmed = false;
 
 			{
-				const float tab_start_x = 70.0f;
+				const float tab_start_x = 94.0f;
 				const float tab_area_w = ui::size.x - tab_start_x;
 				const int tab_count = (int)ui::tabs.size();
 				const float per_tab_w = tab_area_w / (float)tab_count;
-				ImGui::SetCursorPos(ImVec2(tab_start_x, 8.0f));
+				ImGui::SetCursorPos(ImVec2(tab_start_x, 6.0f));
 				ImGui::BeginGroup();
 				ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
 				for (int i = 0; i < tab_count; ++i) {
@@ -4274,7 +4274,7 @@ void Menu::Load() {
  			
  			if (!ui::tabs[ui::cur_page].m_subtabs.empty()) {
  				for (int i = 0; i < ui::tabs[ui::cur_page].m_subtabs.size(); ++i) {
-					ImGui::SetCursorPosY(46.0f + i * 28.0f);
+					ImGui::SetCursorPosY(100.0f + i * 28.0f);
  					ImGui::SetCursorPosX(2.0f);
  					ui::subtab(i);
  				}
