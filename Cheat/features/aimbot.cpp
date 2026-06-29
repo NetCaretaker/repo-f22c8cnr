@@ -51,27 +51,44 @@ namespace game_function {
 
 bool hooked = false;
 
+// SEH-safe helper: checks CNavigation occlusion flag at +0x2D
+// Separate function to avoid C2712 (no C++ objects with destructors here)
+static bool CheckNavOccluded(uint64_t entityPtr) {
+    __try {
+        // CEntity+0x30 = CNavigation pointer
+        uint64_t nav = *(uint64_t*)(entityPtr + 0x30);
+        if (!nav) return false;
+        // CNavigation+0x2D = occlusion flag (CheckOccluded pattern: 80 B8 2D 00 00 00 00 75)
+        uint8_t occluded = *(uint8_t*)(nav + 0x2D);
+        if (occluded) return true;
+    }
+    __except(EXCEPTION_EXECUTE_HANDLER) {}
+    return false;
+}
+
 static bool IsTargetVisible(uint64_t localplayer, uint64_t targetPed) {
     (void)localplayer;
 
+    // Check game's occlusion flag (detects walls/geometry)
+    if (CheckNavOccluded(targetPed)) return false;
+
+    // W2S check: verify head projects on screen
     DWORD64 camera_addr = Core::Get()->GetCamera();
     if (!camera_addr) return true;
-
-    Vector3 cam_pos = *(Vector3*)(camera_addr + 0x60);
 
     Vector3 head_pos = Core::Get()->BoneVec(targetPed, 0);
     head_pos.z += 0.06f;
 
-    // Check if target is in front of the camera (dot product with camera forward)
+    // Dot product: check target is in front of camera
     DWORD64 camera_params = *(DWORD64*)(camera_addr + 0x10);
     if (camera_params) {
+        Vector3 cam_pos = *(Vector3*)(camera_addr + 0x60);
         Vector3 cam_fwd = *(Vector3*)(camera_params + 0x30);
         Vector3 to_target = head_pos - cam_pos;
         float dot = to_target.x * cam_fwd.x + to_target.y * cam_fwd.y + to_target.z * cam_fwd.z;
         if (dot < 0.0f) return false;
     }
 
-    // Check if head projects on screen
     ImVec2 head_screen = Core::Get()->W2S(head_pos);
     if (head_screen.x == 0.0f && head_screen.y == 0.0f) return false;
     if (!Graphics::Get()->IsOnScreen(head_screen)) return false;
