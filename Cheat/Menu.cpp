@@ -3566,6 +3566,19 @@ static bool SafeLuaExecScript(const std::string& script)
 				}
 			}
  			ImGui::SameLine();
+ 			if (ui::modern_button(sk("Exec Raw"), ImVec2(90, 0))) {
+				std::string script(lua_script_buf);
+				if (IsLuaReady()) {
+					if (DirectLuaExecRaw(script))
+						AppendLuaLog("[Pink] Raw exec: OK");
+					else
+						AppendLuaLog("[Pink] Raw exec: FAILED (compile/runtime error)");
+				} else {
+					AppendLuaLog("[Pink] DirectLua not ready, using fallback");
+					SafeLuaExecScript(script);
+				}
+			}
+ 			ImGui::SameLine();
  			if (ui::modern_button(sk("Clear"), ImVec2(90, 0))) { lua_script_buf[0] = '\0'; }
  			ImGui::SameLine();
 
