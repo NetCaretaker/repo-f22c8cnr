@@ -648,9 +648,9 @@ void ui::styles() {
     style.ChildBorderSize = 0.0f;
 
     style.WindowPadding = ImVec2(12, 12);
-    style.FramePadding = ImVec2(12, 8);
-    style.ItemSpacing = ImVec2(10, 6);
-    style.ItemInnerSpacing = ImVec2(6, 6);
+    style.FramePadding = ImVec2(12, 10);
+    style.ItemSpacing = ImVec2(10, 2);
+    style.ItemInnerSpacing = ImVec2(6, 4);
     style.IndentSpacing = 16.0f;
     style.ScrollbarSize = 2.0f;
     style.GrabMinSize = 10.0f;
@@ -753,7 +753,7 @@ bool ui::modern_button(const char* label, ImVec2 size) {
     ImVec2 pos = window->DC.CursorPos;
     
     if (size.x == 0.0f) size.x = label_size.x + 24.0f;
-    if (size.y == 0.0f) size.y = 28.0f;
+    if (size.y == 0.0f) size.y = 32.0f;
     
     const ImRect bb(pos, pos + size);
     ItemSize(bb, style.FramePadding.y);
