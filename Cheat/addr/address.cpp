@@ -741,19 +741,24 @@ void Address::GetPlayerNameInternal(int netid, char* outName, size_t outSize) {
     __except (EXCEPTION_EXECUTE_HANDLER) {}
 }
 
-std::string Address::GetPlayerNameFromInfo(uint64_t playerinfo) {
-    if (!playerinfo) return "";
+static bool ReadPlayerNameFromInfoSEH(uint64_t playerinfo, DWORD offset, char* out, size_t outSize) {
     __try {
-        if (IsBadReadPtr((void*)playerinfo, m_pPlayerName + 20)) return "";
-        const char* namePtr = (const char*)(playerinfo + m_pPlayerName);
-        if (!namePtr || IsBadStringPtrA(namePtr, 20)) return "";
-        char buf[24] = {};
-        strncpy_s(buf, sizeof(buf), namePtr, _TRUNCATE);
-        buf[20] = '\0';
-        if (buf[0] == '\0') return "";
-        return std::string(buf);
+        if (IsBadReadPtr((void*)playerinfo, offset + 20)) return false;
+        const char* namePtr = (const char*)(playerinfo + offset);
+        if (!namePtr || IsBadStringPtrA(namePtr, 20)) return false;
+        strncpy_s(out, outSize, namePtr, _TRUNCATE);
+        out[20] = '\0';
+        return (out[0] != '\0');
     }
     __except (EXCEPTION_EXECUTE_HANDLER) {}
+    return false;
+}
+
+std::string Address::GetPlayerNameFromInfo(uint64_t playerinfo) {
+    if (!playerinfo) return "";
+    char buf[24] = {};
+    if (ReadPlayerNameFromInfoSEH(playerinfo, m_pPlayerName, buf, sizeof(buf)))
+        return std::string(buf);
     return "";
 }
 
