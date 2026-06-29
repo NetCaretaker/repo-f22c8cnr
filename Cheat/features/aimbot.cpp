@@ -53,9 +53,29 @@ bool hooked = false;
 
 static bool IsTargetVisible(uint64_t localplayer, uint64_t targetPed) {
     (void)localplayer;
-    (void)targetPed;
-    // Disabled: previous implementations caused crashes
-    // Will re-enable with a safe method later
+
+    DWORD64 camera_addr = Core::Get()->GetCamera();
+    if (!camera_addr) return true;
+
+    Vector3 cam_pos = *(Vector3*)(camera_addr + 0x60);
+
+    Vector3 head_pos = Core::Get()->BoneVec(targetPed, 0);
+    head_pos.z += 0.06f;
+
+    // Check if target is in front of the camera (dot product with camera forward)
+    DWORD64 camera_params = *(DWORD64*)(camera_addr + 0x10);
+    if (camera_params) {
+        Vector3 cam_fwd = *(Vector3*)(camera_params + 0x30);
+        Vector3 to_target = head_pos - cam_pos;
+        float dot = to_target.x * cam_fwd.x + to_target.y * cam_fwd.y + to_target.z * cam_fwd.z;
+        if (dot < 0.0f) return false;
+    }
+
+    // Check if head projects on screen
+    ImVec2 head_screen = Core::Get()->W2S(head_pos);
+    if (head_screen.x == 0.0f && head_screen.y == 0.0f) return false;
+    if (!Graphics::Get()->IsOnScreen(head_screen)) return false;
+
     return true;
 }
 
