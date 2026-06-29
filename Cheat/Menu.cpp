@@ -27,6 +27,7 @@
 #include "features/self.h"
 #include "../Main/includes/globals.h"
 #include "../Main/encrypt/skStr.h"
+#include "../logo_data.h"
 
 using json = nlohmann::json;
 
@@ -36,6 +37,40 @@ using json = nlohmann::json;
 #ifndef LUA_CONSOLE_BUF_SIZE
 #define LUA_CONSOLE_BUF_SIZE (256 * 1024) 
 #endif
+
+// Logo texture for header
+static ID3D11ShaderResourceView* g_LogoSRV = nullptr;
+static bool g_LogoLoaded = false;
+
+static void CreateLogoTexture()
+{
+    if (g_LogoLoaded || !pDevice) return;
+    g_LogoLoaded = true;
+
+    D3D11_TEXTURE2D_DESC desc = {};
+    desc.Width = LOGO_WIDTH;
+    desc.Height = LOGO_HEIGHT;
+    desc.MipLevels = 1;
+    desc.ArraySize = 1;
+    desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+    desc.SampleDesc.Count = 1;
+    desc.Usage = D3D11_USAGE_DEFAULT;
+    desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+
+    D3D11_SUBRESOURCE_DATA initData = {};
+    initData.pSysMem = g_LogoPixels;
+    initData.SysMemPitch = LOGO_WIDTH * 4;
+
+    ID3D11Texture2D* tex = nullptr;
+    if (SUCCEEDED(pDevice->CreateTexture2D(&desc, &initData, &tex))) {
+        D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+        srvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+        srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+        srvDesc.Texture2D.MipLevels = 1;
+        pDevice->CreateShaderResourceView(tex, &srvDesc, &g_LogoSRV);
+        tex->Release();
+    }
+}
 
 static void OpenConfigsDirInExplorer();
 static void BuildPlayerCacheImpl(
@@ -4140,6 +4175,7 @@ static void RenderLoadingScreen() {
 
 void Menu::Load() {
 	
+	CreateLogoTexture();
 	TickLuaInjector();
 	
 	if (!globals.menu.loading_done) {
@@ -4203,7 +4239,10 @@ void Menu::Load() {
 
 				draw->AddLine(ImVec2(p.x + 94.0f, p.y + header_height), ImVec2(p.x + 94.0f, p.y + s.y - 24.0f), ImGui::GetColorU32(ImVec4(1.f, 1.f, 1.f, 0.04f)));
 
-				draw->AddText(ImVec2(p.x + 14.0f, p.y + 14.f), ImGui::GetColorU32(ImVec4(1.f, 1.f, 1.f, 0.6f)), sk("NIDEV").decrypt());
+				if (g_LogoSRV) {
+					ImVec2 logoPos(p.x + 31.0f, p.y + 7.0f);
+					draw->AddImage((ImTextureID)g_LogoSRV, logoPos, ImVec2(logoPos.x + 32.0f, logoPos.y + 32.0f));
+				}
 				draw->AddText(ImVec2(p.x + 12.0f, p.y + s.y - 18.f), ImGui::GetColorU32(ImVec4(1.f, 1.f, 1.f, 0.25f)), sk("beta").decrypt());
 
  				
