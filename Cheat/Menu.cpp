@@ -4097,7 +4097,7 @@ void Menu::Load() {
 
 				draw->AddLine(ImVec2(p.x + 94.0f, p.y + header_height), ImVec2(p.x + 94.0f, p.y + s.y - 24.0f), ImGui::GetColorU32(ImVec4(1.f, 1.f, 1.f, 0.04f)));
 
-				draw->AddText(ImVec2(p.x + 14.0f, p.y + 12.f), ImGui::GetColorU32(ImVec4(1.f, 1.f, 1.f, 0.6f)), sk("NIDEV").decrypt());
+				draw->AddText(ImVec2(p.x + 14.0f, p.y + 14.f), ImGui::GetColorU32(ImVec4(1.f, 1.f, 1.f, 0.6f)), sk("NIDEV").decrypt());
 				draw->AddText(ImVec2(p.x + 12.0f, p.y + s.y - 18.f), ImGui::GetColorU32(ImVec4(1.f, 1.f, 1.f, 0.25f)), sk("beta").decrypt());
 
  				
@@ -4113,7 +4113,7 @@ void Menu::Load() {
 				const float tab_area_w = ui::size.x - tab_start_x;
 				const int tab_count = (int)ui::tabs.size();
 				const float per_tab_w = tab_area_w / (float)tab_count;
-				ImGui::SetCursorPos(ImVec2(tab_start_x, 4.0f));
+				ImGui::SetCursorPos(ImVec2(tab_start_x, 8.0f));
 				ImGui::BeginGroup();
 				ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
 				for (int i = 0; i < tab_count; ++i) {
@@ -4129,15 +4129,15 @@ void Menu::Load() {
  			
  			if (!ui::tabs[ui::cur_page].m_subtabs.empty()) {
  				for (int i = 0; i < ui::tabs[ui::cur_page].m_subtabs.size(); ++i) {
-					ImGui::SetCursorPosY(72.0f + i * 28.0f);
- 					ImGui::SetCursorPosX(30.0f);
+					ImGui::SetCursorPosY(46.0f + i * 28.0f);
+ 					ImGui::SetCursorPosX(2.0f);
  					ui::subtab(i);
  				}
  			}
 
  			
-			ImGui::SetCursorPosY(56.0f);
- 			ImGui::SetCursorPosX(122.0f);
+			ImGui::SetCursorPosY(44.0f);
+ 			ImGui::SetCursorPosX(100.0f);
  			
  			{
  				float slide_x = (1.0f - eased_menu_anim) * 24.0f;
