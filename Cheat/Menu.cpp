@@ -1941,15 +1941,30 @@ static bool HasSafeSessionContext()
     return Safe_ProcessPedPool();
 }
 
+// C-style helper: refresh resource list inside SEH (no C++ objects with dtors)
+static bool RefreshResourceListSEH()
+{
+    __try {
+        Resources::refresh();
+        return true;
+    } __except (EXCEPTION_EXECUTE_HANDLER) {
+        return false;
+    }
+}
+
 static bool IsLuaTabAvailable()
 {
     if (!HasSafeSessionContext())
         return false;
 
-    auto resources = GetResourcesCached();
-    if (!resources.empty()) return true;
-    resources = GetResourcesSafe();
-    return !resources.empty();
+    // Avoid copying fwRefContainer objects (AddRef on freed memory = crash).
+    // Just check if the raw resource list has entries.
+    if (!Resources::ResourceList.empty())
+        return true;
+
+    // Try refresh behind SEH
+    RefreshResourceListSEH();
+    return !Resources::ResourceList.empty();
 }
 
 static bool s_luaTabConfirmed = false;
@@ -2047,25 +2062,27 @@ static bool IsLikelyUnsafeResourceName(const std::string& name)
 
 static fx::fwRefContainer<fx::Resource> PickSafeResource()
 {
-    auto list = GetResourcesCached();
-    if (list.empty()) list = GetResourcesSafe();
+    // Use ResourceList directly (names already cached as strings, no virtual calls)
+    RefreshResourceListSEH();
+    const auto& resList = Resources::ResourceList;
     
-    for (auto& r : list) {
-        if (!r.GetRef()) continue;
-        std::string nm = r->get_impl()->GetName();
+    // First pass: check allowlist
+    for (const auto& res : resList) {
+        if (!res.Pointer || res.Name.empty()) continue;
         for (auto* allowed : kSafeResAllowlist) {
-            if (equals_icase(nm, allowed)) return r;
+            if (equals_icase(res.Name, allowed))
+                return fx::fwRefContainer<fx::Resource>(reinterpret_cast<fx::Resource*>(res.Pointer));
         }
     }
     
-    for (auto& r : list) {
-        if (!r.GetRef()) continue;
-        std::string nm = r->get_impl()->GetName();
-        if (nm.empty()) continue;
-        std::string low = nm;
+    // Second pass: check prefix list
+    for (const auto& res : resList) {
+        if (!res.Pointer || res.Name.empty()) continue;
+        std::string low = res.Name;
         std::transform(low.begin(), low.end(), low.begin(), [](unsigned char c){ return (char)tolower(c); });
         for (auto* pref : kSafeResPrefixes) {
-            if (low.find(pref) != std::string::npos) return r;
+            if (low.find(pref) != std::string::npos)
+                return fx::fwRefContainer<fx::Resource>(reinterpret_cast<fx::Resource*>(res.Pointer));
         }
     }
     
@@ -3374,6 +3391,9 @@ static bool SafeLuaExecScript(const std::string& script)
  			float leftW = totalW * 0.60f;
  			float rightW = totalW - leftW - spacing;
 
+ 			// Refresh resource list (safe, behind SEH)
+ 			RefreshResourceListSEH();
+ 			const auto& resList = Resources::ResourceList;
  			
  			ImGui::BeginGroup();
  			{
@@ -3384,19 +3404,16 @@ static bool SafeLuaExecScript(const std::string& script)
  				ImGui::InputTextWithHint("Filter##res_search", "Filter resources...", lua_res_filter, IM_ARRAYSIZE(lua_res_filter));
  				ImGui::PopStyleColor(3);
 
- 				auto resources2 = GetResourcesSafe();
- 				float rightW = totalW - leftW - spacing;
  				float baseH = ImGui::GetTextLineHeight() * 15.0f;
  				ImVec2 listSize = ImVec2(leftW, baseH);
  				ImGui::PushStyleColor(ImGuiCol_ChildBg, IM_COL32(10, 10, 10, 210));
  				if (ImGui::BeginListBox(sk("##res_list"), listSize)) {
- 					for (int i = 0; i < (int)resources2.size(); ++i) {
- 						if (!resources2[i].GetRef()) continue;
- 						std::string nameStr = resources2[i]->get_impl()->GetName();
- 						if (lua_res_filter[0] != '\0' && nameStr.find(lua_res_filter) == std::string::npos) continue;
+ 					for (int i = 0; i < (int)resList.size(); ++i) {
+ 						if (resList[i].Name.empty()) continue;
+ 						if (lua_res_filter[0] != '\0' && resList[i].Name.find(lua_res_filter) == std::string::npos) continue;
  						bool isSelected = (lua_selected_resource == i);
  						ImGui::PushID(i);
- 						if (ImGui::Selectable(nameStr.c_str(), isSelected)) {
+ 						if (ImGui::Selectable(resList[i].Name.c_str(), isSelected)) {
  							lua_selected_resource = i;
  						}
  						ImGui::PopID();
@@ -3405,8 +3422,8 @@ static bool SafeLuaExecScript(const std::string& script)
  				}
  				ImGui::PopStyleColor();
  				
- 				if (lua_selected_resource >= (int)resources2.size()) lua_selected_resource = (int)resources2.size() - 1;
- 				if (lua_selected_resource < 0 && !resources2.empty()) lua_selected_resource = 0;
+ 				if (lua_selected_resource >= (int)resList.size()) lua_selected_resource = (int)resList.size() - 1;
+ 				if (lua_selected_resource < 0 && !resList.empty()) lua_selected_resource = 0;
  			}
  			ImGui::EndGroup();
 
@@ -3415,56 +3432,52 @@ static bool SafeLuaExecScript(const std::string& script)
  			
  			ImGui::BeginGroup();
  			{
- 				ImVec2 __rAvail = ImGui::GetContentRegionAvail();
- 				float rightW = totalW - leftW - spacing;
  				float baseH = ImGui::GetTextLineHeight() * 9.0f;
  				float __detailsW = rightW * 0.60f; 
  				float __detailsH = baseH * 3.0f; 
  				ImGui::BeginChild(sk("##res_details"), ImVec2(__detailsW, __detailsH), false, ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoScrollbar);
- 				auto resources2 = GetResourcesCached();
- 				bool hasSel = (lua_selected_resource >= 0 && lua_selected_resource < (int)resources2.size());
+ 				bool hasSel = (lua_selected_resource >= 0 && lua_selected_resource < (int)resList.size());
  				if (hasSel) {
- 					auto r = resources2[lua_selected_resource];
- 					const bool refOk = r.GetRef();
- 					std::string nameStr = refOk ? r->get_impl()->GetName() : std::string();
- 					bool isStoppedByUser = (!nameStr.empty() && s_userStopped[nameStr]);
+ 					const auto& res = resList[lua_selected_resource];
+ 					bool isStoppedByUser = (!res.Name.empty() && s_userStopped[res.Name]);
  					bool isRunning = !isStoppedByUser;
  					const char* statusTxt = isRunning ? "Running..." : "Stopped";
  					ImGui::Text("Status: %s", statusTxt);
 
  					ImGui::Dummy(ImVec2(0, 6));
  					
- 					ImGui::BeginDisabled(!refOk || !isStoppedByUser);
+ 					ImGui::BeginDisabled(!res.Pointer || !isStoppedByUser);
  					if (ui::modern_button(sk("Start"), ImVec2(ImGui::CalcItemWidth(), ImGui::GetFrameHeight()))) {
- 						if (r.GetRef()) { r->Start(); if (!nameStr.empty()) s_userStopped[nameStr] = false; }
+ 						if (res.Pointer) {
+ 							fx::fwRefContainer<fx::Resource> r(reinterpret_cast<fx::Resource*>(res.Pointer));
+ 							r->Start();
+ 							if (!res.Name.empty()) s_userStopped[res.Name] = false;
+ 						}
  					}
  					ImGui::EndDisabled();
 
- 					ImGui::BeginDisabled(!refOk || isStoppedByUser);
+ 					ImGui::BeginDisabled(!res.Pointer || isStoppedByUser);
  					if (ui::modern_button(sk("Stop"), ImVec2(ImGui::CalcItemWidth(), ImGui::GetFrameHeight()))) {
- 						if (r.GetRef()) { r->Stop(); if (!nameStr.empty()) s_userStopped[nameStr] = true; }
+ 						if (res.Pointer) {
+ 							fx::fwRefContainer<fx::Resource> r(reinterpret_cast<fx::Resource*>(res.Pointer));
+ 							r->Stop();
+ 							if (!res.Name.empty()) s_userStopped[res.Name] = true;
+ 						}
  					}
  					ImGui::EndDisabled();
 
  					if (ui::modern_button(sk("Restart"), ImVec2(ImGui::CalcItemWidth(), ImGui::GetFrameHeight()))) {
- 						if (r.GetRef()) { r->Stop(); Sleep(50); r->Start(); if (!nameStr.empty()) s_userStopped[nameStr] = false; }
+ 						if (res.Pointer) {
+ 							fx::fwRefContainer<fx::Resource> r(reinterpret_cast<fx::Resource*>(res.Pointer));
+ 							r->Stop(); Sleep(50); r->Start();
+ 							if (!res.Name.empty()) s_userStopped[res.Name] = false;
+ 						}
  					}
-
 
  				} else {
  					ImGui::TextDisabled("No resource selected");
  				}
  				ImGui::Separator();
- 				/*if (ui::modern_button(sk("Start All"), ImVec2(ImGui::CalcItemWidth(), ImGui::GetFrameHeight()))) {
- 					for (auto& r : resources2) { if (r.GetRef()) r->Start(); }
- 				}
- 				if (ui::modern_button(sk("Stop All"), ImVec2(ImGui::CalcItemWidth(), ImGui::GetFrameHeight()))) {
- 					for (auto& r : resources2) { if (r.GetRef()) r->Stop(); }
- 				}*/
- 				
- 				
- 			
- 			
 
  				ImGui::EndChild();
  			}
@@ -3622,8 +3635,8 @@ static bool SafeLuaExecScript(const std::string& script)
  			}
  			ImGui::SameLine();
  			{
- 				auto r = PickSafeResource();
- 				const char* rn = (r.GetRef() ? r->get_impl()->GetName().c_str() : "<none>");
+ 				// Safe: just check if resources exist, no fwRefContainer copy
+ 				const char* rn = Resources::ResourceList.empty() ? "<none>" : "<auto>";
  				ImGui::TextDisabled("Target: %s", rn);
  			}
 
