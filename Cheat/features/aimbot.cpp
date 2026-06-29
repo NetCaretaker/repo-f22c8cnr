@@ -52,34 +52,11 @@ namespace game_function {
 bool hooked = false;
 
 static bool IsTargetVisible(uint64_t localplayer, uint64_t targetPed) {
-    __try {
-        // Check navigation/occlusion flags on ped
-        // CEntity+0x30 = CNavigation pointer
-        uint64_t nav = *(uint64_t*)(targetPed + 0x30);
-        if (nav) {
-            // Navigation flags at +0x2C contain visibility/occlusion bits
-            uint8_t flags = *(uint8_t*)(nav + 0x2D);
-            // Bit set = entity is occluded (behind geometry)
-            if (flags & 1) return false;
-        }
-
-        // Backup check: verify target is in front of camera and on screen
-        DWORD64 camera_addr = Core::Get()->GetCamera();
-        if (!camera_addr) return true;
-
-        Vector3 cam_pos = *(Vector3*)(camera_addr + 0x60);
-        Vector3 target_pos = Core::Get()->BoneVec(targetPed, 0);
-        target_pos.z += 0.06f;
-
-        ImVec2 head_screen = Core::Get()->W2S(target_pos);
-        if (head_screen.x == 0.0f && head_screen.y == 0.0f) return false;
-        if (!Graphics::Get()->IsOnScreen(head_screen)) return false;
-
-        return true;
-    }
-    __except(EXCEPTION_EXECUTE_HANDLER) {
-        return true;
-    }
+    (void)localplayer;
+    (void)targetPed;
+    // Disabled: previous implementations caused crashes
+    // Will re-enable with a safe method later
+    return true;
 }
 
 void Aimbot::SetAngles(Vector3 targetpoint) {

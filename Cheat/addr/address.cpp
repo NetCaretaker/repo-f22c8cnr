@@ -104,26 +104,11 @@ int get_build() {
 }
 
 static void InitializeRaycast(uint64_t image_base, int gameNumber) {
-	uintptr_t raycastOffset = 0;
-	switch (gameNumber) {
-		case 3407:
-			raycastOffset = 0xD8AEA8;
-			break;
-		default:
-			raycastOffset = 0xD75E9C;
-			break;
-	}
-	
-	__try {
-		uintptr_t raycastPtrAddr = image_base + raycastOffset;
-		uintptr_t raycastFuncPtr = *(uintptr_t*)raycastPtrAddr;
-		if (raycastFuncPtr) {
-			MemoryAddress::raycast = reinterpret_cast<raycast_t>(raycastFuncPtr);
-		}
-	}
-	__except(EXCEPTION_EXECUTE_HANDLER) {
-		MemoryAddress::raycast = nullptr;
-	}
+	(void)image_base;
+	(void)gameNumber;
+	// Disabled: raycast is not used and reading from potentially wrong offsets
+	// can corrupt memory or trigger anti-cheat
+	MemoryAddress::raycast = nullptr;
 }
 
 void Address::Load() {
@@ -784,20 +769,15 @@ static uintptr_t FindPlayerNamesInDll(uintptr_t dllBase) {
 }
 
 void Address::GetPlayerNameInternal(int netid, char* outName, size_t outSize) {
+    // Try pattern-scanned address first (safest)
     if (s_pPlayerNamesList && TryNameFromMap(s_pPlayerNamesList, netid, outName, outSize))
         return;
 
+    // Try known DLL offset
     auto dllName = sk("citizen-playernames-five.dll");
     uintptr_t dllBase = (uintptr_t)GetModuleHandleA(dllName);
-    if (!dllBase) return;
-
-    if (TryNameFromMap(dllBase + 0x30D98, netid, outName, outSize))
-        return;
-
-    uintptr_t found = FindPlayerNamesInDll(dllBase);
-    if (found) {
-        s_pPlayerNamesList = found;
-        TryNameFromMap(found, netid, outName, outSize);
+    if (dllBase) {
+        TryNameFromMap(dllBase + 0x30D98, netid, outName, outSize);
     }
 }
 
