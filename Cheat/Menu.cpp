@@ -4007,50 +4007,29 @@ static void RenderLoadingScreen() {
 	if (progress > 0.85f)
 		alpha = 1.0f - ((progress - 0.85f) / 0.15f);
 
-	draw->AddRectFilled(ImVec2(0, 0), disp, ImGui::GetColorU32(ImVec4(0.02f, 0.02f, 0.04f, alpha)));
+	draw->AddRectFilled(ImVec2(0, 0), disp, ImGui::GetColorU32(ImVec4(0.03f, 0.03f, 0.04f, alpha)));
 
 	ImVec2 center(disp.x * 0.5f, disp.y * 0.5f);
-
 	float time = (float)now;
-	float radius = 32.0f;
-	int segments = 3;
-	for (int s = 0; s < segments; s++) {
-		float offset = s * (6.2831f / segments);
-		float startAngle = time * 3.5f + offset;
-		float arcLen = 1.2f + 0.4f * sinf(time * 2.0f + s);
-		int numPts = 24;
-		float segAlpha = alpha * (0.5f + 0.5f * ((s + 1.0f) / segments));
-		for (int i = 0; i < numPts - 1; i++) {
-			float a1 = startAngle + (arcLen * i / numPts);
-			float a2 = startAngle + (arcLen * (i + 1) / numPts);
-			ImVec2 p1(center.x + cosf(a1) * radius, center.y + sinf(a1) * radius);
-			ImVec2 p2(center.x + cosf(a2) * radius, center.y + sinf(a2) * radius);
-			float lineAlpha = (float)(i + 1) / numPts;
-			ImU32 lc = ImGui::GetColorU32(ImVec4(0.84f, 0.38f, 1.0f, segAlpha * lineAlpha));
-			draw->AddLine(p1, p2, lc, 2.5f);
-		}
+
+	float radius = 20.0f;
+	int numPts = 32;
+	for (int i = 0; i < numPts; i++) {
+		float a1 = time * 3.0f + (6.2831f * i / numPts);
+		float a2 = time * 3.0f + (6.2831f * (i + 1) / numPts);
+		ImVec2 p1(center.x + cosf(a1) * radius, center.y + sinf(a1) * radius);
+		ImVec2 p2(center.x + cosf(a2) * radius, center.y + sinf(a2) * radius);
+		float seg_alpha = (float)i / numPts;
+		draw->AddLine(p1, p2, ImGui::GetColorU32(ImVec4(0.40f, 0.42f, 0.96f, seg_alpha * alpha)), 1.5f);
 	}
 
-	float dotRadius = 4.0f + 1.5f * sinf(time * 4.0f);
-	float dotAngle = time * 3.5f;
-	ImVec2 dotPos(center.x + cosf(dotAngle) * radius, center.y + sinf(dotAngle) * radius);
-	draw->AddCircleFilled(dotPos, dotRadius, ImGui::GetColorU32(ImVec4(0.92f, 0.55f, 1.0f, alpha)), 16);
-	draw->AddCircleFilled(dotPos, dotRadius + 4.0f, ImGui::GetColorU32(ImVec4(0.84f, 0.38f, 1.0f, alpha * 0.3f)), 16);
-
-	float barW = 180.0f;
-	float barH = 3.0f;
-	ImVec2 barMin(center.x - barW * 0.5f, center.y + 55.0f);
+	float barW = 120.0f;
+	float barH = 2.0f;
+	ImVec2 barMin(center.x - barW * 0.5f, center.y + 38.0f);
 	ImVec2 barMax(barMin.x + barW, barMin.y + barH);
-	draw->AddRectFilled(barMin, barMax, ImGui::GetColorU32(ImVec4(1.0f, 1.0f, 1.0f, 0.08f * alpha)), 2.0f);
+	draw->AddRectFilled(barMin, barMax, ImGui::GetColorU32(ImVec4(1.0f, 1.0f, 1.0f, 0.05f * alpha)), 1.0f);
 	ImVec2 fillMax(barMin.x + barW * progress, barMax.y);
-	draw->AddRectFilled(barMin, fillMax, ImGui::GetColorU32(ImVec4(0.84f, 0.38f, 1.0f, 0.9f * alpha)), 2.0f);
-
-	const char* text = "Initializing...";
-	ImVec2 textSz = ImGui::CalcTextSize(text);
-	draw->AddText(ImVec2(center.x - textSz.x * 0.5f, center.y + 68.0f), ImGui::GetColorU32(ImVec4(0.85f, 0.85f, 0.9f, alpha * 0.85f)), text);
-
-	float pulse = 0.5f + 0.5f * sinf(time * 2.0f);
-	draw->AddCircleFilled(center, radius + 12.0f, ImGui::GetColorU32(ImVec4(0.84f, 0.38f, 1.0f, 0.04f * pulse * alpha)), 48);
+	draw->AddRectFilled(barMin, fillMax, ImGui::GetColorU32(ImVec4(0.40f, 0.42f, 0.96f, 0.8f * alpha)), 1.0f);
 }
 
 void Menu::Load() {
@@ -4087,7 +4066,7 @@ void Menu::Load() {
  		
  		ImDrawList* __bg = ImGui::GetBackgroundDrawList();
  		ImVec2 __disp = ImGui::GetIO().DisplaySize;
- 		__bg->AddRectFilled(ImVec2(0, 0), __disp, ImGui::GetColorU32(ImVec4(0, 0, 0, 0.12f * eased_menu_anim)));
+ 		__bg->AddRectFilled(ImVec2(0, 0), __disp, ImGui::GetColorU32(ImVec4(0, 0, 0, 0.25f * eased_menu_anim)));
 
  		
  		ImGui::PushStyleVar(ImGuiStyleVar_Alpha, eased_menu_anim);
@@ -4109,51 +4088,17 @@ void Menu::Load() {
  				draw->PushClipRect(ImVec2(p.x, p.y), ImVec2(p.x + s.x * eased_menu_anim, p.y + s.y), true);
 
  				
-				draw->AddRectFilled(ImVec2(p.x, p.y), ImVec2(p.x + s.x, p.y + s.y), ImColor(8, 9, 16, 248), 16.0f);
-				draw->AddRect(ImVec2(p.x, p.y), ImVec2(p.x + s.x, p.y + s.y), ImColor(255, 255, 255, 8), 16.0f);
-				draw->AddRectFilledMultiColor(
-					ImVec2(p.x, p.y),
-					ImVec2(p.x + s.x, p.y + 120.0f),
-					ImGui::GetColorU32(ImVec4(0.30f, 0.12f, 0.50f, 0.18f)),
-					ImGui::GetColorU32(ImVec4(0.15f, 0.06f, 0.35f, 0.10f)),
-					ImGui::GetColorU32(ImVec4(0.f, 0.f, 0.f, 0.f)),
-					ImGui::GetColorU32(ImVec4(0.f, 0.f, 0.f, 0.f))
-				);
-				draw->AddRectFilledMultiColor(
-					ImVec2(p.x, p.y + s.y - 80.0f),
-					ImVec2(p.x + s.x, p.y + s.y),
-					ImGui::GetColorU32(ImVec4(0.f, 0.f, 0.f, 0.f)),
-					ImGui::GetColorU32(ImVec4(0.f, 0.f, 0.f, 0.f)),
-					ImGui::GetColorU32(ImVec4(0.25f, 0.08f, 0.40f, 0.06f)),
-					ImGui::GetColorU32(ImVec4(0.15f, 0.05f, 0.30f, 0.04f))
-				);
-				
-				const float header_height = 44.0f;
-				draw->AddLine(ImVec2(p.x + 12.0f, p.y + s.y - 27), ImVec2(p.x + s.x - 12.0f, p.y + s.y - 27), ImColor(255, 255, 255, 16));
-				draw->AddLine(ImVec2(p.x + 12.0f, p.y + header_height), ImVec2(p.x + s.x - 12.0f, p.y + header_height), ImColor(255, 255, 255, 16));
+				draw->AddRectFilled(ImVec2(p.x, p.y), ImVec2(p.x + s.x, p.y + s.y), ImGui::GetColorU32(ImVec4(0.05f, 0.05f, 0.06f, 0.98f)), 10.0f);
+				draw->AddRect(ImVec2(p.x, p.y), ImVec2(p.x + s.x, p.y + s.y), ImGui::GetColorU32(ImVec4(1.f, 1.f, 1.f, 0.06f)), 10.0f);
 
-				
-				draw->AddRectFilled(ImVec2(p.x + 10.0f, p.y + 54.0f), ImVec2(p.x + 10.0f + 120.0f, p.y + s.y - 36.85f), ImColor(12, 13, 20, 240), 12.0f);
-				draw->AddRect(ImVec2(p.x + 10.0f, p.y + 54.0f), ImVec2(p.x + 10.0f + 120.0f, p.y + s.y - 36.85f), ImColor(255, 255, 255, 6), 12.0f);
+				const float header_height = 38.0f;
+				draw->AddLine(ImVec2(p.x, p.y + header_height), ImVec2(p.x + s.x, p.y + header_height), ImGui::GetColorU32(ImVec4(1.f, 1.f, 1.f, 0.04f)));
+				draw->AddLine(ImVec2(p.x, p.y + s.y - 24.0f), ImVec2(p.x + s.x, p.y + s.y - 24.0f), ImGui::GetColorU32(ImVec4(1.f, 1.f, 1.f, 0.04f)));
 
- 				
- 				int fade_line_count = 60;
- 				float fade_stop = s.x;
- 				float center_point = fade_stop / 2.0f;
- 				for (int i = 0; i < fade_line_count; i++)
- 				{
- 					float alpha = 1.0f - (i * (1.0f / fade_line_count));
-					ImVec2 start_right = ImVec2(p.x + fade_stop - i * (center_point / fade_line_count), p.y + header_height);
-					ImVec2 end_right = ImVec2(p.x + fade_stop - (i + 1) * (center_point / fade_line_count), p.y + header_height);
- 					ImVec4 c = ImGui::GetStyle().Colors[ImGuiCol_Scheme];
- 					c.w *= alpha;
- 					draw->AddLine(start_right, end_right, ImGui::GetColorU32(c));
- 				}
+				draw->AddLine(ImVec2(p.x + 94.0f, p.y + header_height), ImVec2(p.x + 94.0f, p.y + s.y - 24.0f), ImGui::GetColorU32(ImVec4(1.f, 1.f, 1.f, 0.04f)));
 
- 				
-				draw->AddText(ImVec2(p.x + 9.5f, p.y + 7.f), main_col, sk("discord.gg/nidevwz").decrypt());
- 				draw->AddText(ImVec2(p.x + 9.5f, p.y + s.y - 22.f), ImColor(255, 255, 255, 100), sk("Build:").decrypt());
-				draw->AddText(ImVec2(p.x + 41.f, p.y + s.y - 22.f), (ImU32)main_col, sk("BETA").decrypt());
+				draw->AddText(ImVec2(p.x + 12.0f, p.y + 11.f), ImGui::GetColorU32(ImVec4(1.f, 1.f, 1.f, 0.5f)), sk("NIDEV").decrypt());
+				draw->AddText(ImVec2(p.x + 12.0f, p.y + s.y - 18.f), ImGui::GetColorU32(ImVec4(1.f, 1.f, 1.f, 0.25f)), sk("beta").decrypt());
 
  				
  				draw->PopClipRect();

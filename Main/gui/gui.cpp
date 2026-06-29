@@ -16,10 +16,9 @@ bool ui::tab(int num) {
     const ImVec2 label_size = CalcTextSize(label, NULL, true);
     ImVec2 pos = window->DC.CursorPos;
 
-    const float tab_padding_x = 16.0f; 
-    const float tab_height = 28.0f;
-    const float rounding_radius = 14.0f;
-    const ImRect rect(pos, ImVec2(pos.x + label_size.x + tab_padding_x * 2, pos.y + tab_height));
+    const float tab_height = 30.0f;
+    const float tab_w = 90.0f;
+    const ImRect rect(pos, ImVec2(pos.x + tab_w, pos.y + tab_height));
     
     ItemSize(rect, style.FramePadding.y);
     if (!ItemAdd(rect, id))
@@ -35,65 +34,31 @@ bool ui::tab(int num) {
         next_tab = num;
     }
 
-    
     static std::map<ImGuiID, float> fade_alpha;
-    auto it_alpha = fade_alpha.find(id);
-    if (it_alpha == fade_alpha.end()) {
-        fade_alpha[id] = 0.0f;
-        it_alpha = fade_alpha.find(id);
-    }
-
-    
-    const float fade_speed = 10.0f;  
-    if (selected) {
-        it_alpha->second += fade_speed * GetIO().DeltaTime;
-        if (it_alpha->second > 1.0f) it_alpha->second = 1.0f;
-    }
-    else {
-        it_alpha->second -= fade_speed * GetIO().DeltaTime;
-        if (it_alpha->second < 0.0f) it_alpha->second = 0.0f;
-    }
-
-    
-    float current_alpha = it_alpha->second;
-
-    
-    static std::map<ImGuiID, ImColor> color_anim;
-    ImColor& current_color = color_anim[id];
-    ImColor target_color = ImColor(120, 122, 140, 255); 
-
-    if (selected) {
-        target_color = ImColor(255, 255, 255, 255); 
-    } else if (hovered) {
-        target_color = ImColor(200, 195, 220, 255);
-    }
-
-    
-    float speed = 4.0f * GetIO().DeltaTime;
-    current_color = ImColor(
-        ImLerp(current_color.Value.x * 255.0f, target_color.Value.x * 255.0f, speed) / 255.0f,
-        ImLerp(current_color.Value.y * 255.0f, target_color.Value.y * 255.0f, speed) / 255.0f,
-        ImLerp(current_color.Value.z * 255.0f, target_color.Value.z * 255.0f, speed) / 255.0f,
-        ImLerp(current_color.Value.w * 255.0f, target_color.Value.w * 255.0f, speed) / 255.0f
-    );
+    float& sel_a = fade_alpha[id];
+    float target = selected ? 1.0f : 0.0f;
+    sel_a = ImLerp(sel_a, target, GetIO().DeltaTime * 12.0f);
 
     ImVec4 accent = GetStyle().Colors[ImGuiCol_Scheme];
+    float text_alpha = selected ? 1.0f : (hovered ? 0.7f : 0.4f);
+    ImU32 text_col = GetColorU32(ImVec4(1.f, 1.f, 1.f, text_alpha));
 
-    if (selected || current_alpha > 0.01f) {
-        ImU32 pill_col = GetColorU32(ImVec4(accent.x, accent.y, accent.z, 0.18f * current_alpha));
-        window->DrawList->AddRectFilled(rect.Min, rect.Max, pill_col, rounding_radius);
-        window->DrawList->AddRect(rect.Min, rect.Max, GetColorU32(ImVec4(accent.x, accent.y, accent.z, 0.25f * current_alpha)), rounding_radius, 0, 1.0f);
-    } else if (hovered) {
-        window->DrawList->AddRectFilled(rect.Min, rect.Max, GetColorU32(ImVec4(1.f, 1.f, 1.f, 0.03f)), rounding_radius);
-    }
+    if (hovered && !selected)
+        window->DrawList->AddRectFilled(rect.Min, rect.Max, GetColorU32(ImVec4(1.f, 1.f, 1.f, 0.02f)), 6.0f);
 
     ImVec2 text_pos = ImVec2(rect.Min.x + (rect.GetWidth() - label_size.x) * 0.5f, rect.Min.y + (rect.GetHeight() - label_size.y) * 0.5f);
-    window->DrawList->AddText(text_pos, current_color, label);
+    window->DrawList->AddText(text_pos, text_col, label);
 
-    if (selected) {
-        float dot_y = rect.Max.y + 4.0f;
-        float dot_x = rect.Min.x + rect.GetWidth() * 0.5f;
-        window->DrawList->AddCircleFilled(ImVec2(dot_x, dot_y), 2.0f * current_alpha, GetColorU32(ImVec4(accent.x, accent.y, accent.z, 0.9f * current_alpha)), 12);
+    if (sel_a > 0.01f) {
+        float line_w = 16.0f * sel_a;
+        float line_x = rect.Min.x + (rect.GetWidth() - line_w) * 0.5f;
+        float line_y = rect.Max.y - 1.0f;
+        window->DrawList->AddRectFilled(
+            ImVec2(line_x, line_y),
+            ImVec2(line_x + line_w, line_y + 2.0f),
+            GetColorU32(ImVec4(accent.x, accent.y, accent.z, sel_a)),
+            1.0f
+        );
     }
 
     return pressed;
@@ -112,9 +77,9 @@ bool ui::subtab(int num) {
     const ImVec2 label_size = CalcTextSize(label, NULL, true);
     ImVec2 pos = window->DC.CursorPos;
 
-    const float tab_padding_x = 8.0f;
-    const float tab_height = 26.0f;
-    const ImRect rect(pos, ImVec2(pos.x + label_size.x + tab_padding_x * 2, pos.y + tab_height));
+    const float tab_height = 24.0f;
+    const float tab_w = 90.0f;
+    const ImRect rect(pos, ImVec2(pos.x + tab_w, pos.y + tab_height));
     
     ItemSize(ImVec4(rect.Min.x, rect.Min.y, rect.Max.x + 2.f, rect.Max.y), style.FramePadding.y);
     if (!ItemAdd(rect, id))
@@ -130,52 +95,21 @@ bool ui::subtab(int num) {
         tabs[cur_page].next_page = num;
     }
 
-    
     static std::map<ImGuiID, float> subtab_sel_anim;
     float& sel_anim = subtab_sel_anim[id];
-    float sel_target = selected ? 1.0f : 0.0f;
-    sel_anim = ImLerp(sel_anim, sel_target, GetIO().DeltaTime * 10.0f);
-
-    static std::map<ImGuiID, ImColor> color_anim;
-    ImColor& current_color = color_anim[id];
-    ImColor target_color = ImColor(110, 112, 130, 255); 
-
-    if (selected) {
-        target_color = ImColor(255, 255, 255, 255); 
-    } else if (hovered) {
-        target_color = ImColor(185, 180, 200, 255);
-    }
-
-    
-    float speed = 5.0f * GetIO().DeltaTime;
-    current_color = ImColor(
-        ImLerp(current_color.Value.x * 255.0f, target_color.Value.x * 255.0f, speed) / 255.0f,
-        ImLerp(current_color.Value.y * 255.0f, target_color.Value.y * 255.0f, speed) / 255.0f,
-        ImLerp(current_color.Value.z * 255.0f, target_color.Value.z * 255.0f, speed) / 255.0f,
-        ImLerp(current_color.Value.w * 255.0f, target_color.Value.w * 255.0f, speed) / 255.0f
-    );
+    sel_anim = ImLerp(sel_anim, selected ? 1.0f : 0.0f, GetIO().DeltaTime * 12.0f);
 
     ImVec4 accent = GetStyle().Colors[ImGuiCol_Scheme];
-
-    if (hovered && !selected)
-        window->DrawList->AddRectFilled(rect.Min, rect.Max, GetColorU32(ImVec4(1.f, 1.f, 1.f, 0.03f)), 6.0f);
+    float text_alpha = selected ? 0.95f : (hovered ? 0.55f : 0.35f);
+    ImU32 text_col = GetColorU32(ImVec4(1.f, 1.f, 1.f, text_alpha));
 
     if (sel_anim > 0.01f) {
-        float bar_h = 16.0f * sel_anim;
-        float bar_y = rect.Min.y + (rect.GetHeight() - bar_h) * 0.5f;
-        window->DrawList->AddRectFilled(
-            ImVec2(rect.Min.x, bar_y),
-            ImVec2(rect.Min.x + 2.5f, bar_y + bar_h),
-            GetColorU32(ImVec4(accent.x, accent.y, accent.z, 0.9f * sel_anim)),
-            2.0f
-        );
+        window->DrawList->AddRectFilled(rect.Min, rect.Max, GetColorU32(ImVec4(1.f, 1.f, 1.f, 0.03f * sel_anim)), 4.0f);
     }
 
-    
-    ImVec2 text_pos = ImVec2(rect.Min.x + 10.0f, rect.Min.y + (rect.GetHeight() - label_size.y) * 0.5f);
-    window->DrawList->AddText(text_pos, current_color, label, FindRenderedTextEnd(label));
+    ImVec2 text_pos = ImVec2(rect.Min.x + (rect.GetWidth() - label_size.x) * 0.5f, rect.Min.y + (rect.GetHeight() - label_size.y) * 0.5f);
+    window->DrawList->AddText(text_pos, text_col, label, FindRenderedTextEnd(label));
 
-    
     SetCursorPosY(GetCursorPosY() + rect.GetHeight() + style.ItemSpacing.y - 1.0f);
 
     return pressed;
@@ -306,15 +240,8 @@ void ui::begin_child(const char* name, ImVec2 size) {
 
     ImVec2 child_min = GetWindowPos();
     ImVec2 child_max = ImVec2(child_min.x + GetWindowSize().x, child_min.y + GetWindowSize().y);
-    GetWindowDrawList()->AddRectFilled(child_min, child_max, GetColorU32(ImVec4(0.055f, 0.06f, 0.085f, 0.94f)), 12.0f);
-    GetWindowDrawList()->AddRect(child_min, child_max, GetColorU32(ImVec4(1.f, 1.f, 1.f, 0.025f)), 12.0f, 0, 1.0f);
-    GetWindowDrawList()->AddRectFilled(
-        ImVec2(child_min.x, child_min.y),
-        ImVec2(child_max.x, child_min.y + 2.0f),
-        GetColorU32(ImVec4(accent.x, accent.y, accent.z, 0.55f)),
-        12.0f,
-        ImDrawFlags_RoundCornersTop
-    );
+    GetWindowDrawList()->AddRectFilled(child_min, child_max, GetColorU32(ImVec4(1.f, 1.f, 1.f, 0.02f)), 8.0f);
+    GetWindowDrawList()->AddRect(child_min, child_max, GetColorU32(ImVec4(1.f, 1.f, 1.f, 0.04f)), 8.0f, 0, 1.0f);
 }
 
 
@@ -707,28 +634,26 @@ void ui::multi_select(const char* label, std::vector< multi_select_item >& items
 void ui::styles() {
     auto& style = GImGui->Style;
 
-    
-    style.WindowRounding = 16.0f;
-    style.FrameRounding = 8.0f;
-    style.ChildRounding = 12.0f;
-    style.PopupRounding = 12.0f;
-    style.ScrollbarRounding = 12.0f;
-    style.GrabRounding = 8.0f;
-    style.TabRounding = 8.0f;
+    style.WindowRounding = 10.0f;
+    style.FrameRounding = 6.0f;
+    style.ChildRounding = 8.0f;
+    style.PopupRounding = 8.0f;
+    style.ScrollbarRounding = 6.0f;
+    style.GrabRounding = 6.0f;
+    style.TabRounding = 6.0f;
 
     style.WindowBorderSize = 0.0f;
     style.FrameBorderSize = 0.0f;
-    style.PopupBorderSize = 1.0f;
+    style.PopupBorderSize = 0.0f;
     style.ChildBorderSize = 0.0f;
 
-    
-    style.WindowPadding = ImVec2(16, 16);
-    style.FramePadding = ImVec2(14, 10);
-    style.ItemSpacing = ImVec2(14, 10);
-    style.ItemInnerSpacing = ImVec2(8, 8);
-    style.IndentSpacing = 20.0f;
-    style.ScrollbarSize = 3.0f;
-    style.GrabMinSize = 12.0f;
+    style.WindowPadding = ImVec2(12, 12);
+    style.FramePadding = ImVec2(12, 8);
+    style.ItemSpacing = ImVec2(10, 6);
+    style.ItemInnerSpacing = ImVec2(6, 6);
+    style.IndentSpacing = 16.0f;
+    style.ScrollbarSize = 2.0f;
+    style.GrabMinSize = 10.0f;
 
     style.DisplaySafeAreaPadding = ImVec2(4, 4);
     style.AntiAliasedLines = true;
@@ -738,82 +663,80 @@ void ui::styles() {
 void ui::colors() {
     ImVec4* colors = GImGui->Style.Colors;
 
-    
-    ImVec4 accent = ImColor(160, 100, 255);     
-    ImVec4 hover  = ImColor(185, 135, 255);     
-    ImVec4 active = ImColor(210, 170, 255);     
+    ImVec4 accent = ImVec4(0.40f, 0.42f, 0.96f, 1.0f);
+    ImVec4 hover  = ImVec4(0.50f, 0.52f, 1.00f, 1.0f);
+    ImVec4 active = ImVec4(0.60f, 0.62f, 1.00f, 1.0f);
 
-    ImVec4 bgDark = ImColor(8, 8, 14, 255);    
-    ImVec4 bgLight = ImColor(14, 15, 22, 255);  
-    ImVec4 panel  = ImColor(16, 17, 26, 255);   
-    ImVec4 panel2 = ImColor(22, 24, 35, 255);
-    ImVec4 border = ImColor(255, 255, 255, 14); 
-    ImVec4 text = ImColor(240, 241, 248);
-    ImVec4 textDisabled = ImColor(130, 134, 155, 200);
+    ImVec4 bgDark  = ImVec4(0.04f, 0.04f, 0.05f, 1.0f);
+    ImVec4 bgLight = ImVec4(0.06f, 0.06f, 0.07f, 1.0f);
+    ImVec4 panel   = ImVec4(0.07f, 0.07f, 0.08f, 1.0f);
+    ImVec4 panel2  = ImVec4(0.09f, 0.09f, 0.10f, 1.0f);
+    ImVec4 border  = ImVec4(1.0f, 1.0f, 1.0f, 0.04f);
+    ImVec4 text    = ImVec4(0.88f, 0.88f, 0.92f, 1.0f);
+    ImVec4 textDim = ImVec4(0.45f, 0.45f, 0.52f, 1.0f);
 
     colors[ImGuiCol_Text] = text;
-    colors[ImGuiCol_TextDisabled] = textDisabled;
+    colors[ImGuiCol_TextDisabled] = textDim;
     colors[ImGuiCol_WindowBg] = bgDark;
-    colors[ImGuiCol_ChildBg] = panel;
+    colors[ImGuiCol_ChildBg] = ImVec4(0.0f, 0.0f, 0.0f, 0.0f);
     colors[ImGuiCol_PopupBg] = panel2;
 
     colors[ImGuiCol_Border] = border;
     colors[ImGuiCol_BorderShadow] = ImVec4(0, 0, 0, 0);
 
-    colors[ImGuiCol_FrameBg] = panel2;
-    colors[ImGuiCol_FrameBgHovered] = ImVec4(hover.x, hover.y, hover.z, 0.18f);
-    colors[ImGuiCol_FrameBgActive] = ImVec4(active.x, active.y, active.z, 0.24f);
+    colors[ImGuiCol_FrameBg] = ImVec4(1.0f, 1.0f, 1.0f, 0.03f);
+    colors[ImGuiCol_FrameBgHovered] = ImVec4(1.0f, 1.0f, 1.0f, 0.05f);
+    colors[ImGuiCol_FrameBgActive] = ImVec4(1.0f, 1.0f, 1.0f, 0.07f);
 
     colors[ImGuiCol_TitleBg] = bgDark;
-    colors[ImGuiCol_TitleBgActive] = panel;
+    colors[ImGuiCol_TitleBgActive] = bgDark;
     colors[ImGuiCol_TitleBgCollapsed] = bgDark;
 
-    colors[ImGuiCol_MenuBarBg] = panel;
+    colors[ImGuiCol_MenuBarBg] = bgDark;
 
     colors[ImGuiCol_ScrollbarBg] = ImVec4(0.f, 0.f, 0.f, 0.f);
-    colors[ImGuiCol_ScrollbarGrab] = ImVec4(0.f, 0.f, 0.f, 0.f);
-    colors[ImGuiCol_ScrollbarGrabHovered] = ImVec4(0.f, 0.f, 0.f, 0.f);
-    colors[ImGuiCol_ScrollbarGrabActive] = ImVec4(0.f, 0.f, 0.f, 0.f);
+    colors[ImGuiCol_ScrollbarGrab] = ImVec4(1.f, 1.f, 1.f, 0.06f);
+    colors[ImGuiCol_ScrollbarGrabHovered] = ImVec4(1.f, 1.f, 1.f, 0.10f);
+    colors[ImGuiCol_ScrollbarGrabActive] = ImVec4(1.f, 1.f, 1.f, 0.14f);
 
     colors[ImGuiCol_CheckMark] = accent;
     colors[ImGuiCol_SliderGrab] = accent;
     colors[ImGuiCol_SliderGrabActive] = active;
 
-    colors[ImGuiCol_Button] = ImVec4(accent.x, accent.y, accent.z, 0.18f);
-    colors[ImGuiCol_ButtonHovered] = ImVec4(hover.x, hover.y, hover.z, 0.26f);
-    colors[ImGuiCol_ButtonActive] = ImVec4(active.x, active.y, active.z, 0.34f);
+    colors[ImGuiCol_Button] = ImVec4(1.0f, 1.0f, 1.0f, 0.04f);
+    colors[ImGuiCol_ButtonHovered] = ImVec4(1.0f, 1.0f, 1.0f, 0.07f);
+    colors[ImGuiCol_ButtonActive] = ImVec4(1.0f, 1.0f, 1.0f, 0.10f);
 
-    colors[ImGuiCol_Header] = panel2;
-    colors[ImGuiCol_HeaderHovered] = ImVec4(hover.x, hover.y, hover.z, 0.18f);
-    colors[ImGuiCol_HeaderActive] = ImVec4(active.x, active.y, active.z, 0.24f);
+    colors[ImGuiCol_Header] = ImVec4(1.0f, 1.0f, 1.0f, 0.03f);
+    colors[ImGuiCol_HeaderHovered] = ImVec4(1.0f, 1.0f, 1.0f, 0.05f);
+    colors[ImGuiCol_HeaderActive] = ImVec4(1.0f, 1.0f, 1.0f, 0.07f);
 
-    colors[ImGuiCol_Separator] = border;
-    colors[ImGuiCol_SeparatorHovered] = hover;
+    colors[ImGuiCol_Separator] = ImVec4(1.0f, 1.0f, 1.0f, 0.04f);
+    colors[ImGuiCol_SeparatorHovered] = accent;
     colors[ImGuiCol_SeparatorActive] = active;
 
-    colors[ImGuiCol_ResizeGrip] = accent;
-    colors[ImGuiCol_ResizeGripHovered] = hover;
-    colors[ImGuiCol_ResizeGripActive] = active;
+    colors[ImGuiCol_ResizeGrip] = ImVec4(0, 0, 0, 0);
+    colors[ImGuiCol_ResizeGripHovered] = ImVec4(0, 0, 0, 0);
+    colors[ImGuiCol_ResizeGripActive] = ImVec4(0, 0, 0, 0);
 
-    colors[ImGuiCol_Tab] = panel;
-    colors[ImGuiCol_TabHovered] = ImVec4(hover.x, hover.y, hover.z, 0.20f);
-    colors[ImGuiCol_TabActive] = ImVec4(accent.x, accent.y, accent.z, 0.26f);
-    colors[ImGuiCol_TabUnfocused] = bgLight;
-    colors[ImGuiCol_TabUnfocusedActive] = panel;
+    colors[ImGuiCol_Tab] = ImVec4(0, 0, 0, 0);
+    colors[ImGuiCol_TabHovered] = ImVec4(1.0f, 1.0f, 1.0f, 0.04f);
+    colors[ImGuiCol_TabActive] = ImVec4(1.0f, 1.0f, 1.0f, 0.06f);
+    colors[ImGuiCol_TabUnfocused] = ImVec4(0, 0, 0, 0);
+    colors[ImGuiCol_TabUnfocusedActive] = ImVec4(0, 0, 0, 0);
 
     colors[ImGuiCol_PlotLines] = accent;
     colors[ImGuiCol_PlotLinesHovered] = hover;
     colors[ImGuiCol_PlotHistogram] = accent;
     colors[ImGuiCol_PlotHistogramHovered] = hover;
 
-    colors[ImGuiCol_TextSelectedBg] = ImVec4(accent.x, accent.y, accent.z, 0.35f);
-    colors[ImGuiCol_DragDropTarget] = active;
-    colors[ImGuiCol_NavHighlight] = hover;
-    colors[ImGuiCol_NavWindowingHighlight] = ImVec4(255, 255, 255, 0.7f);
-    colors[ImGuiCol_NavWindowingDimBg] = ImVec4(0, 0, 0, 0.5f);
-    colors[ImGuiCol_ModalWindowDimBg] = ImVec4(0, 0, 0, 0.7f);
+    colors[ImGuiCol_TextSelectedBg] = ImVec4(accent.x, accent.y, accent.z, 0.20f);
+    colors[ImGuiCol_DragDropTarget] = accent;
+    colors[ImGuiCol_NavHighlight] = accent;
+    colors[ImGuiCol_NavWindowingHighlight] = ImVec4(1, 1, 1, 0.5f);
+    colors[ImGuiCol_NavWindowingDimBg] = ImVec4(0, 0, 0, 0.4f);
+    colors[ImGuiCol_ModalWindowDimBg] = ImVec4(0, 0, 0, 0.6f);
 
-    
     colors[ImGuiCol_Scheme] = accent;
 }
 
@@ -829,8 +752,8 @@ bool ui::modern_button(const char* label, ImVec2 size) {
     const ImVec2 label_size = CalcTextSize(label, NULL, true);
     ImVec2 pos = window->DC.CursorPos;
     
-    if (size.x == 0.0f) size.x = label_size.x + style.FramePadding.x * 2.0f;
-    if (size.y == 0.0f) size.y = label_size.y + style.FramePadding.y * 2.0f;
+    if (size.x == 0.0f) size.x = label_size.x + 24.0f;
+    if (size.y == 0.0f) size.y = 28.0f;
     
     const ImRect bb(pos, pos + size);
     ItemSize(bb, style.FramePadding.y);
@@ -840,44 +763,21 @@ bool ui::modern_button(const char* label, ImVec2 size) {
     bool hovered, held;
     bool pressed = ButtonBehavior(bb, id, &hovered, &held);
 
-    
     static std::map<ImGuiID, float> button_anim;
-    auto it_anim = button_anim.find(id);
-    if (it_anim == button_anim.end()) {
-        button_anim[id] = 0.0f;
-        it_anim = button_anim.find(id);
-    }
+    float& anim_val = button_anim[id];
+    float target_anim = held ? 1.0f : (hovered ? 0.6f : 0.0f);
+    anim_val = ImLerp(anim_val, target_anim, GetIO().DeltaTime * 14.0f);
 
-    float target_anim = held ? 1.0f : (hovered ? 0.7f : 0.0f);
-    it_anim->second = ImLerp(it_anim->second, target_anim, GetIO().DeltaTime * 12.0f);
-    float anim_val = it_anim->second;
+    const float rounding = 6.0f;
 
-    ImVec4 accent = GetStyle().Colors[ImGuiCol_Scheme];
-    const float rounding = 8.0f;
-
-    ImU32 bg_base = GetColorU32(ImVec4(accent.x * 0.15f, accent.y * 0.15f, accent.z * 0.15f, 0.6f + anim_val * 0.3f));
-    ImU32 bg_hover = GetColorU32(ImVec4(accent.x, accent.y, accent.z, 0.12f + anim_val * 0.12f));
-    ImU32 border_col = GetColorU32(ImVec4(accent.x, accent.y, accent.z, 0.2f + anim_val * 0.25f));
-
-    window->DrawList->AddRectFilled(bb.Min, bb.Max, bg_base, rounding);
-    if (anim_val > 0.01f)
-        window->DrawList->AddRectFilled(bb.Min, bb.Max, bg_hover, rounding);
-    window->DrawList->AddRect(bb.Min, bb.Max, border_col, rounding, 0, 1.0f);
-
-    if (anim_val > 0.3f) {
-        window->DrawList->AddRectFilled(
-            ImVec2(bb.Min.x + 1.0f, bb.Max.y - 2.0f),
-            ImVec2(bb.Max.x - 1.0f, bb.Max.y),
-            GetColorU32(ImVec4(accent.x, accent.y, accent.z, 0.4f * anim_val)),
-            rounding, ImDrawFlags_RoundCornersBottom
-        );
-    }
+    window->DrawList->AddRectFilled(bb.Min, bb.Max, GetColorU32(ImVec4(1.f, 1.f, 1.f, 0.03f + anim_val * 0.04f)), rounding);
+    window->DrawList->AddRect(bb.Min, bb.Max, GetColorU32(ImVec4(1.f, 1.f, 1.f, 0.08f + anim_val * 0.08f)), rounding, 0, 1.0f);
 
     ImVec2 text_pos = ImVec2(
         floorf(bb.Min.x + (bb.GetWidth() - label_size.x) * 0.5f + 0.5f),
         floorf(bb.Min.y + (bb.GetHeight() - label_size.y) * 0.5f + 0.5f)
     );
-    ImU32 text_col = GetColorU32(ImVec4(1.f, 1.f, 1.f, 0.85f + anim_val * 0.15f));
+    ImU32 text_col = GetColorU32(ImVec4(1.f, 1.f, 1.f, 0.6f + anim_val * 0.35f));
     window->DrawList->AddText(text_pos, text_col, label);
 
     return pressed;
@@ -936,22 +836,20 @@ bool ui::slider_int(const char* label, int* v, int v_min, int v_max, const char*
     const ImGuiID id = window->GetID(label);
 
     const float full_w = CalcItemWidth();
-    const float bar_h = 3.0f;
-    const float grab_r = 5.0f;
+    const float bar_h = 2.0f;
+    const float grab_r = 4.5f;
 
     ImVec2 pos = window->DC.CursorPos;
     ImVec2 label_size = CalcTextSize(label, NULL, true);
 
-    ImRect total_bb(pos, ImVec2(pos.x + full_w, pos.y + label_size.y + style.ItemInnerSpacing.y + grab_r * 2));
+    ImRect total_bb(pos, ImVec2(pos.x + full_w, pos.y + label_size.y + style.ItemInnerSpacing.y + grab_r * 2 + 2.0f));
     ItemSize(total_bb, style.FramePadding.y);
     if (!ItemAdd(total_bb, id))
         return false;
 
-    
     ImVec2 label_pos = pos;
-    window->DrawList->AddText(label_pos, GetColorU32(ImGuiCol_Text), label);
+    window->DrawList->AddText(label_pos, GetColorU32(ImVec4(1.f, 1.f, 1.f, 0.55f)), label);
 
-    
     ImVec2 bar_min = ImVec2(pos.x, pos.y + label_size.y + style.ItemInnerSpacing.y + grab_r - bar_h * 0.5f);
     ImVec2 bar_max = ImVec2(pos.x + full_w, bar_min.y + bar_h);
     ImRect bar_bb(bar_min, bar_max);
@@ -966,13 +864,10 @@ bool ui::slider_int(const char* label, int* v, int v_min, int v_max, const char*
         if (new_v != *v) { *v = new_v; MarkItemEdited(id); }
     }
 
-    
     if (g.ActiveId == id) {
         int step = 1;
         if (IsKeyPressed(ImGuiKey_LeftArrow, true)) { *v = ImClamp(*v - step, v_min, v_max); MarkItemEdited(id); }
         if (IsKeyPressed(ImGuiKey_RightArrow, true)) { *v = ImClamp(*v + step, v_min, v_max); MarkItemEdited(id); }
-        if (IsKeyPressed(ImGuiKey_PageDown, true)) { *v = ImClamp(*v - step * 10, v_min, v_max); MarkItemEdited(id); }
-        if (IsKeyPressed(ImGuiKey_PageUp, true)) { *v = ImClamp(*v + step * 10, v_min, v_max); MarkItemEdited(id); }
     }
 
     float t = (*v - (float)v_min) / ImMax(1.0f, (float)(v_max - v_min));
@@ -980,24 +875,17 @@ bool ui::slider_int(const char* label, int* v, int v_min, int v_max, const char*
     float fill_x = bar_bb.Min.x + t * bar_bb.GetWidth();
 
     ImVec4 accent = style.Colors[ImGuiCol_Scheme];
-    
-    window->DrawList->AddRectFilled(bar_bb.Min, bar_bb.Max, GetColorU32(ImVec4(1.f, 1.f, 1.f, 0.06f)), bar_h * 0.5f);
-    
-    window->DrawList->AddRectFilled(bar_bb.Min, ImVec2(fill_x, bar_bb.Max.y), GetColorU32(ImVec4(accent.x, accent.y, accent.z, 0.85f)), bar_h * 0.5f);
-    
-    ImVec2 grab_center = ImVec2(fill_x, (bar_bb.Min.y + bar_bb.Max.y) * 0.5f);
-    
-    if (hovered || held)
-        window->DrawList->AddCircleFilled(grab_center, grab_r + 5.0f, GetColorU32(ImVec4(accent.x, accent.y, accent.z, 0.12f)), 32);
-    
-    window->DrawList->AddCircleFilled(grab_center, grab_r, GetColorU32(ImVec4(1.f, 1.f, 1.f, 0.95f)), 24);
-    window->DrawList->AddCircleFilled(grab_center, grab_r - 2.0f, GetColorU32(ImVec4(accent.x, accent.y, accent.z, 0.9f)), 24);
 
-    
+    window->DrawList->AddRectFilled(bar_bb.Min, bar_bb.Max, GetColorU32(ImVec4(1.f, 1.f, 1.f, 0.05f)), 1.0f);
+    window->DrawList->AddRectFilled(bar_bb.Min, ImVec2(fill_x, bar_bb.Max.y), GetColorU32(ImVec4(accent.x, accent.y, accent.z, 0.7f)), 1.0f);
+
+    ImVec2 grab_center = ImVec2(fill_x, (bar_bb.Min.y + bar_bb.Max.y) * 0.5f);
+    window->DrawList->AddCircleFilled(grab_center, grab_r, GetColorU32(ImVec4(1.f, 1.f, 1.f, 0.92f)), 16);
+
     char buf[64];
     ImFormatString(buf, IM_ARRAYSIZE(buf), format ? format : "%d", *v);
     ImVec2 val_sz = CalcTextSize(buf);
-    window->DrawList->AddText(ImVec2(total_bb.Max.x - val_sz.x, label_pos.y), GetColorU32(ImVec4(accent.x, accent.y, accent.z, 0.9f)), buf);
+    window->DrawList->AddText(ImVec2(total_bb.Max.x - val_sz.x, label_pos.y), GetColorU32(ImVec4(1.f, 1.f, 1.f, 0.55f)), buf);
 
     return *v != old_v;
 }
@@ -1012,22 +900,20 @@ bool ui::slider_float(const char* label, float* v, float v_min, float v_max, con
     const ImGuiID id = window->GetID(label);
 
     const float full_w = CalcItemWidth();
-    const float bar_h = 3.0f;
-    const float grab_r = 5.0f;
+    const float bar_h = 2.0f;
+    const float grab_r = 4.5f;
 
     ImVec2 pos = window->DC.CursorPos;
     ImVec2 label_size = CalcTextSize(label, NULL, true);
 
-    ImRect total_bb(pos, ImVec2(pos.x + full_w, pos.y + label_size.y + style.ItemInnerSpacing.y + grab_r * 2));
+    ImRect total_bb(pos, ImVec2(pos.x + full_w, pos.y + label_size.y + style.ItemInnerSpacing.y + grab_r * 2 + 2.0f));
     ItemSize(total_bb, style.FramePadding.y);
     if (!ItemAdd(total_bb, id))
         return false;
 
-    
     ImVec2 label_pos = pos;
-    window->DrawList->AddText(label_pos, GetColorU32(ImGuiCol_Text), label);
+    window->DrawList->AddText(label_pos, GetColorU32(ImVec4(1.f, 1.f, 1.f, 0.55f)), label);
 
-    
     ImVec2 bar_min = ImVec2(pos.x, pos.y + label_size.y + style.ItemInnerSpacing.y + grab_r - bar_h * 0.5f);
     ImVec2 bar_max = ImVec2(pos.x + full_w, bar_min.y + bar_h);
     ImRect bar_bb(bar_min, bar_max);
@@ -1042,13 +928,10 @@ bool ui::slider_float(const char* label, float* v, float v_min, float v_max, con
         if (new_v != *v) { *v = new_v; MarkItemEdited(id); }
     }
 
-    
     if (g.ActiveId == id) {
-        float step = (v_max - v_min) * 0.01f; 
+        float step = (v_max - v_min) * 0.01f;
         if (IsKeyPressed(ImGuiKey_LeftArrow, true)) { *v = ImClamp(*v - step, v_min, v_max); MarkItemEdited(id); }
         if (IsKeyPressed(ImGuiKey_RightArrow, true)) { *v = ImClamp(*v + step, v_min, v_max); MarkItemEdited(id); }
-        if (IsKeyPressed(ImGuiKey_PageDown, true)) { *v = ImClamp(*v - step * 10.0f, v_min, v_max); MarkItemEdited(id); }
-        if (IsKeyPressed(ImGuiKey_PageUp, true)) { *v = ImClamp(*v + step * 10.0f, v_min, v_max); MarkItemEdited(id); }
     }
 
     float t = (*v - v_min) / ImMax(1e-6f, (v_max - v_min));
@@ -1056,22 +939,17 @@ bool ui::slider_float(const char* label, float* v, float v_min, float v_max, con
     float fill_x = bar_bb.Min.x + t * bar_bb.GetWidth();
 
     ImVec4 accent = style.Colors[ImGuiCol_Scheme];
-    
-    window->DrawList->AddRectFilled(bar_bb.Min, bar_bb.Max, GetColorU32(ImVec4(1.f, 1.f, 1.f, 0.06f)), bar_h * 0.5f);
-    window->DrawList->AddRectFilled(bar_bb.Min, ImVec2(fill_x, bar_bb.Max.y), GetColorU32(ImVec4(accent.x, accent.y, accent.z, 0.85f)), bar_h * 0.5f);
+
+    window->DrawList->AddRectFilled(bar_bb.Min, bar_bb.Max, GetColorU32(ImVec4(1.f, 1.f, 1.f, 0.05f)), 1.0f);
+    window->DrawList->AddRectFilled(bar_bb.Min, ImVec2(fill_x, bar_bb.Max.y), GetColorU32(ImVec4(accent.x, accent.y, accent.z, 0.7f)), 1.0f);
 
     ImVec2 grab_center = ImVec2(fill_x, (bar_bb.Min.y + bar_bb.Max.y) * 0.5f);
-    
-    if (hovered || held)
-        window->DrawList->AddCircleFilled(grab_center, grab_r + 5.0f, GetColorU32(ImVec4(accent.x, accent.y, accent.z, 0.12f)), 32);
-    
-    window->DrawList->AddCircleFilled(grab_center, grab_r, GetColorU32(ImVec4(1.f, 1.f, 1.f, 0.95f)), 24);
-    window->DrawList->AddCircleFilled(grab_center, grab_r - 2.0f, GetColorU32(ImVec4(accent.x, accent.y, accent.z, 0.9f)), 24);
+    window->DrawList->AddCircleFilled(grab_center, grab_r, GetColorU32(ImVec4(1.f, 1.f, 1.f, 0.92f)), 16);
 
     char buf[64];
     ImFormatString(buf, IM_ARRAYSIZE(buf), format ? format : "%.3f", *v);
     ImVec2 val_sz = CalcTextSize(buf);
-    window->DrawList->AddText(ImVec2(total_bb.Max.x - val_sz.x, label_pos.y), GetColorU32(ImVec4(accent.x, accent.y, accent.z, 0.9f)), buf);
+    window->DrawList->AddText(ImVec2(total_bb.Max.x - val_sz.x, label_pos.y), GetColorU32(ImVec4(1.f, 1.f, 1.f, 0.55f)), buf);
 
     return *v != old_v;
 }

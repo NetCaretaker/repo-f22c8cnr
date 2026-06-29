@@ -1221,22 +1221,14 @@ bool ImGui::Checkbox(const char* label, bool* v, c_key* key, float col[4])
     ImVec4 accent = style.Colors[ImGuiCol_Scheme];
     float rounding = toggle_h * 0.5f;
 
-    ImU32 track_off = GetColorU32(ImVec4(0.15f, 0.16f, 0.22f, 1.0f));
-
-    window->DrawList->AddRectFilled( click_bb.Min, click_bb.Max, track_off, rounding );
+    window->DrawList->AddRectFilled( click_bb.Min, click_bb.Max, GetColorU32(ImVec4(1.f, 1.f, 1.f, 0.06f)), rounding );
     if (obj.enabled > 0.01f)
-        window->DrawList->AddRectFilled( click_bb.Min, click_bb.Max, GetColorU32(ImVec4(accent.x, accent.y, accent.z, 0.8f * obj.enabled)), rounding );
-
-    if (hovered)
-        window->DrawList->AddRect( click_bb.Min, click_bb.Max, GetColorU32(ImVec4(accent.x, accent.y, accent.z, 0.3f * obj.hover)), rounding, 0, 1.0f );
+        window->DrawList->AddRectFilled( click_bb.Min, click_bb.Max, GetColorU32(ImVec4(accent.x, accent.y, accent.z, 0.65f * obj.enabled)), rounding );
 
     float knob_x = click_bb.Min.x + knob_pad + knob_r + (toggle_w - knob_pad * 2 - knob_r * 2) * obj.circle_anim;
     float knob_y = click_bb.GetCenter().y;
     
-    if (obj.enabled > 0.5f)
-        window->DrawList->AddCircleFilled( {knob_x, knob_y}, knob_r + 4.0f, GetColorU32(ImVec4(accent.x, accent.y, accent.z, 0.15f * obj.enabled)), 24 );
-    
-    window->DrawList->AddCircleFilled( {knob_x, knob_y}, knob_r, obj.circle_col, 24 );
+    window->DrawList->AddCircleFilled( {knob_x, knob_y}, knob_r, GetColorU32(ImVec4(1.f, 1.f, 1.f, 0.9f)), 16 );
 
     window->DrawList->AddText( { bb.Min.x, bb.GetCenter( ).y - label_size.y / 2 }, obj.col, label, FindRenderedTextEnd( label ) );
 
