@@ -3986,11 +3986,82 @@ static void RenderPageSEH()
 	}
 }
 
+static void RenderLoadingScreen() {
+	ImDrawList* draw = ImGui::GetForegroundDrawList();
+	ImVec2 disp = ImGui::GetIO().DisplaySize;
+	double now = ImGui::GetTime();
+
+	if (globals.menu.loading_start_time == 0.0)
+		globals.menu.loading_start_time = now;
+
+	double elapsed = now - globals.menu.loading_start_time;
+	float progress = ImClamp((float)(elapsed / 2.5), 0.0f, 1.0f);
+	globals.menu.loading_progress = progress;
+
+	if (progress >= 1.0f) {
+		globals.menu.loading_done = true;
+		return;
+	}
+
+	float alpha = 1.0f;
+	if (progress > 0.85f)
+		alpha = 1.0f - ((progress - 0.85f) / 0.15f);
+
+	draw->AddRectFilled(ImVec2(0, 0), disp, ImGui::GetColorU32(ImVec4(0.02f, 0.02f, 0.04f, alpha)));
+
+	ImVec2 center(disp.x * 0.5f, disp.y * 0.5f);
+
+	float time = (float)now;
+	float radius = 32.0f;
+	int segments = 3;
+	for (int s = 0; s < segments; s++) {
+		float offset = s * (6.2831f / segments);
+		float startAngle = time * 3.5f + offset;
+		float arcLen = 1.2f + 0.4f * sinf(time * 2.0f + s);
+		int numPts = 24;
+		float segAlpha = alpha * (0.5f + 0.5f * ((s + 1.0f) / segments));
+		for (int i = 0; i < numPts - 1; i++) {
+			float a1 = startAngle + (arcLen * i / numPts);
+			float a2 = startAngle + (arcLen * (i + 1) / numPts);
+			ImVec2 p1(center.x + cosf(a1) * radius, center.y + sinf(a1) * radius);
+			ImVec2 p2(center.x + cosf(a2) * radius, center.y + sinf(a2) * radius);
+			float lineAlpha = (float)(i + 1) / numPts;
+			ImU32 lc = ImGui::GetColorU32(ImVec4(0.84f, 0.38f, 1.0f, segAlpha * lineAlpha));
+			draw->AddLine(p1, p2, lc, 2.5f);
+		}
+	}
+
+	float dotRadius = 4.0f + 1.5f * sinf(time * 4.0f);
+	float dotAngle = time * 3.5f;
+	ImVec2 dotPos(center.x + cosf(dotAngle) * radius, center.y + sinf(dotAngle) * radius);
+	draw->AddCircleFilled(dotPos, dotRadius, ImGui::GetColorU32(ImVec4(0.92f, 0.55f, 1.0f, alpha)), 16);
+	draw->AddCircleFilled(dotPos, dotRadius + 4.0f, ImGui::GetColorU32(ImVec4(0.84f, 0.38f, 1.0f, alpha * 0.3f)), 16);
+
+	float barW = 180.0f;
+	float barH = 3.0f;
+	ImVec2 barMin(center.x - barW * 0.5f, center.y + 55.0f);
+	ImVec2 barMax(barMin.x + barW, barMin.y + barH);
+	draw->AddRectFilled(barMin, barMax, ImGui::GetColorU32(ImVec4(1.0f, 1.0f, 1.0f, 0.08f * alpha)), 2.0f);
+	ImVec2 fillMax(barMin.x + barW * progress, barMax.y);
+	draw->AddRectFilled(barMin, fillMax, ImGui::GetColorU32(ImVec4(0.84f, 0.38f, 1.0f, 0.9f * alpha)), 2.0f);
+
+	const char* text = "Initializing...";
+	ImVec2 textSz = ImGui::CalcTextSize(text);
+	draw->AddText(ImVec2(center.x - textSz.x * 0.5f, center.y + 68.0f), ImGui::GetColorU32(ImVec4(0.85f, 0.85f, 0.9f, alpha * 0.85f)), text);
+
+	float pulse = 0.5f + 0.5f * sinf(time * 2.0f);
+	draw->AddCircleFilled(center, radius + 12.0f, ImGui::GetColorU32(ImVec4(0.84f, 0.38f, 1.0f, 0.04f * pulse * alpha)), 48);
+}
+
 void Menu::Load() {
 	
 	TickLuaInjector();
 	
-	
+	if (!globals.menu.loading_done) {
+		RenderLoadingScreen();
+		return;
+	}
+
 	static float menu_anim = 0.0f;
 	static float bounce_anim = 0.0f;
 	float dt = ImGui::GetIO().DeltaTime;
@@ -4016,7 +4087,7 @@ void Menu::Load() {
  		
  		ImDrawList* __bg = ImGui::GetBackgroundDrawList();
  		ImVec2 __disp = ImGui::GetIO().DisplaySize;
- 		__bg->AddRectFilled(ImVec2(0, 0), __disp, ImGui::GetColorU32(ImVec4(0, 0, 0, 0.03f * eased_menu_anim)));
+ 		__bg->AddRectFilled(ImVec2(0, 0), __disp, ImGui::GetColorU32(ImVec4(0, 0, 0, 0.12f * eased_menu_anim)));
 
  		
  		ImGui::PushStyleVar(ImGuiStyleVar_Alpha, eased_menu_anim);
@@ -4038,15 +4109,23 @@ void Menu::Load() {
  				draw->PushClipRect(ImVec2(p.x, p.y), ImVec2(p.x + s.x * eased_menu_anim, p.y + s.y), true);
 
  				
-				draw->AddRectFilled(ImVec2(p.x, p.y), ImVec2(p.x + s.x, p.y + s.y), ImColor(10, 12, 18, 245), 14.0f);
-				draw->AddRect(ImVec2(p.x + 1, p.y + 1), ImVec2(p.x + s.x - 1, p.y + s.y - 1), ImColor(255, 255, 255, 10), 14.0f);
+				draw->AddRectFilled(ImVec2(p.x, p.y), ImVec2(p.x + s.x, p.y + s.y), ImColor(8, 9, 16, 248), 16.0f);
+				draw->AddRect(ImVec2(p.x, p.y), ImVec2(p.x + s.x, p.y + s.y), ImColor(255, 255, 255, 8), 16.0f);
 				draw->AddRectFilledMultiColor(
 					ImVec2(p.x, p.y),
-					ImVec2(p.x + s.x, p.y + 140.0f),
-					ImGui::GetColorU32(ImVec4(0.35f, 0.10f, 0.45f, 0.22f)),
-					ImGui::GetColorU32(ImVec4(0.35f, 0.10f, 0.45f, 0.08f)),
+					ImVec2(p.x + s.x, p.y + 120.0f),
+					ImGui::GetColorU32(ImVec4(0.30f, 0.12f, 0.50f, 0.18f)),
+					ImGui::GetColorU32(ImVec4(0.15f, 0.06f, 0.35f, 0.10f)),
 					ImGui::GetColorU32(ImVec4(0.f, 0.f, 0.f, 0.f)),
 					ImGui::GetColorU32(ImVec4(0.f, 0.f, 0.f, 0.f))
+				);
+				draw->AddRectFilledMultiColor(
+					ImVec2(p.x, p.y + s.y - 80.0f),
+					ImVec2(p.x + s.x, p.y + s.y),
+					ImGui::GetColorU32(ImVec4(0.f, 0.f, 0.f, 0.f)),
+					ImGui::GetColorU32(ImVec4(0.f, 0.f, 0.f, 0.f)),
+					ImGui::GetColorU32(ImVec4(0.25f, 0.08f, 0.40f, 0.06f)),
+					ImGui::GetColorU32(ImVec4(0.15f, 0.05f, 0.30f, 0.04f))
 				);
 				
 				const float header_height = 44.0f;
@@ -4054,8 +4133,8 @@ void Menu::Load() {
 				draw->AddLine(ImVec2(p.x + 12.0f, p.y + header_height), ImVec2(p.x + s.x - 12.0f, p.y + header_height), ImColor(255, 255, 255, 16));
 
 				
-				draw->AddRectFilled(ImVec2(p.x + 10.0f, p.y + 54.0f), ImVec2(p.x + 10.0f + 120.0f, p.y + s.y - 36.85f), ImColor(16, 18, 26, 255), 12.0f);
-				draw->AddRect(ImVec2(p.x + 10.0f, p.y + 54.0f), ImVec2(p.x + 10.0f + 120.0f, p.y + s.y - 36.85f), ImColor(255, 255, 255, 10), 12.0f);
+				draw->AddRectFilled(ImVec2(p.x + 10.0f, p.y + 54.0f), ImVec2(p.x + 10.0f + 120.0f, p.y + s.y - 36.85f), ImColor(12, 13, 20, 240), 12.0f);
+				draw->AddRect(ImVec2(p.x + 10.0f, p.y + 54.0f), ImVec2(p.x + 10.0f + 120.0f, p.y + s.y - 36.85f), ImColor(255, 255, 255, 6), 12.0f);
 
  				
  				int fade_line_count = 60;

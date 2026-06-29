@@ -297,6 +297,9 @@ public:
 		bool opened = true;
 		bool unload_requested = false;
 		bool unloaded = false;
+		bool loading_done = false;
+		float loading_progress = 0.0f;
+		double loading_start_time = 0.0;
 	};
 	cMenu menu;
 
