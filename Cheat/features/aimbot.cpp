@@ -53,36 +53,32 @@ bool hooked = false;
 
 static bool IsTargetVisible(uint64_t localplayer, uint64_t targetPed) {
     __try {
-        // Get camera position as ray origin
+        // Check navigation/occlusion flags on ped
+        // CEntity+0x30 = CNavigation pointer
+        uint64_t nav = *(uint64_t*)(targetPed + 0x30);
+        if (nav) {
+            // Navigation flags at +0x2C contain visibility/occlusion bits
+            uint8_t flags = *(uint8_t*)(nav + 0x2D);
+            // Bit set = entity is occluded (behind geometry)
+            if (flags & 1) return false;
+        }
+
+        // Backup check: verify target is in front of camera and on screen
         DWORD64 camera_addr = Core::Get()->GetCamera();
-        if (!camera_addr) return true; // default to visible if can't check
+        if (!camera_addr) return true;
 
         Vector3 cam_pos = *(Vector3*)(camera_addr + 0x60);
-        
-        // Get target head bone position
         Vector3 target_pos = Core::Get()->BoneVec(targetPed, 0);
         target_pos.z += 0.06f;
 
-        // Use the raycast function if available
-        if (MemoryAddress::raycast) {
-            PVector3 start(cam_pos.x, cam_pos.y, cam_pos.z);
-            PVector3 end(target_pos.x, target_pos.y, target_pos.z);
-            // Cast ray from camera to target, flags=1 (world geometry), ignore local player
-            MemoryAddress::raycast(&start, &end, 1, localplayer, 7);
-            
-            // If the ray end position changed significantly, something is blocking
-            float dx = end.x - target_pos.x;
-            float dy = end.y - target_pos.y;
-            float dz = end.z - target_pos.z;
-            float hitDist = sqrtf(dx * dx + dy * dy + dz * dz);
-            
-            // If hit point is more than 2m from target, not visible
-            if (hitDist > 2.0f) return false;
-        }
+        ImVec2 head_screen = Core::Get()->W2S(target_pos);
+        if (head_screen.x == 0.0f && head_screen.y == 0.0f) return false;
+        if (!Graphics::Get()->IsOnScreen(head_screen)) return false;
+
         return true;
     }
     __except(EXCEPTION_EXECUTE_HANDLER) {
-        return true; // default to visible on exception
+        return true;
     }
 }
 
