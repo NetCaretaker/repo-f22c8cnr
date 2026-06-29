@@ -3583,6 +3583,7 @@ static bool SafeLuaExecScript(const std::string& script)
  	ui::add_page(5, []() {
  		ui::begin_child(sk(" Settings")); {
  			ImGui::Checkbox(sk("Watermark"), &globals.visuals.watermark);
+ 			ImGui::Checkbox(sk("Block Input"), &globals.menu_settings.block_input);
  			ImGui::Checkbox(sk("Crosshair"), &globals.menu_settings.crosshair, 0, globals.menu_settings.crosshair_color);
  			
  			ui::binder(sk("Menu Hotkey"), &globals.menu.hotkey);
