@@ -302,7 +302,6 @@ void Address::Load() {
 
 	switch (gameNumber) {
 	case 3570:
-		if (!s_pPlayerNamesList) s_pPlayerNamesList = (image_base + 0x2F7C648);
 		if (!m_sPedFactory) m_sPedFactory = (image_base + 0x25EC580);
 		if (!s_pViewPort) s_pViewPort = (image_base + 0x2058BA0);
 		if (!s_pViewAngles) s_pViewAngles = (image_base + 0x2059A48);
@@ -329,7 +328,6 @@ void Address::Load() {
 		m_pBoneOffset = 0x410;
 		break;
 	case 3407:
-		if (!s_pPlayerNamesList) s_pPlayerNamesList = (image_base + 0x2F478A8);
 		if (!m_sPedFactory) m_sPedFactory = (image_base + 0x25D7108);
 		if (!s_pViewPort) s_pViewPort = (image_base + 0x20431C0);
 		if (!s_pViewAngles) s_pViewAngles = (image_base + 0x20440C8);
@@ -378,7 +376,6 @@ void Address::Load() {
 		m_pBoneOffset = 0x410;
 		break;
 	case 3258:
-		if (!s_pPlayerNamesList) s_pPlayerNamesList = (image_base + 0x2F1F678);
 		m_sPedFactory = (image_base + 0x25B14B0);
 		s_pViewAngles = (image_base + 0x201ED50);
 		s_pViewPort = (image_base + 0x201DBA0);
@@ -407,7 +404,6 @@ void Address::Load() {
 		m_pBoneOffset = 0x410;
 		break;
 	case 3095:
-		if (!s_pPlayerNamesList) s_pPlayerNamesList = (image_base + 0x2F1F678);
 		m_sPedFactory = (image_base + 0x2593320);
 		s_pViewAngles = (image_base + 0x20025B8);
 		s_pViewPort = (image_base + 0x20019E0);
@@ -696,49 +692,113 @@ void Address::Load() {
 	s_pSwapChain = Scanner::Get()->Scan(NULL, sk("48 8B 0D ? ? ? ? 48 8B 01 44 8D 43 01 33 D2 FF 50 40 8B C8"), NULL, 7);
 }
 
-void Address::GetPlayerNameInternal(int netid, char* outName, size_t outSize) {
-    uintptr_t baseAddr = s_pPlayerNamesList;
-    if (!baseAddr) {
-        auto dllName = sk("citizen-playernames-five.dll");
-        uintptr_t playernames = (uintptr_t)GetModuleHandleA(dllName);
-        if (playernames) baseAddr = playernames + 0x30D98;
-    }
-    if (!baseAddr) return;
+static bool TryNameFromMap(uintptr_t baseAddr, int netid, char* outName, size_t outSize) {
     __try {
+        if (IsBadReadPtr((void*)baseAddr, sizeof(uintptr_t) + sizeof(int))) return false;
 
-        if (IsBadReadPtr((void*)baseAddr, sizeof(uintptr_t) + sizeof(int))) return;
+        uintptr_t head = *(uintptr_t*)baseAddr;
+        if (!head) return false;
 
-        uintptr_t PlayerNamesArray = *(uintptr_t*)baseAddr;
-        if (!PlayerNamesArray) return;
+        int count = *(int*)(baseAddr + 0x8);
+        if (count <= 0 || count > 500) return false;
 
-        int LastPlayer = *(int*)(baseAddr + 0x8);
-        if (LastPlayer <= 0 || LastPlayer > 500) return;
+        if (IsBadReadPtr((void*)(head + 0x8), sizeof(uintptr_t))) return false;
+        uintptr_t node = *(uintptr_t*)(head + 0x8);
 
-        uintptr_t* pList = (uintptr_t*)(PlayerNamesArray + 0x8);
-        if (IsBadReadPtr(pList, sizeof(uintptr_t))) return;
-        
-        auto list = *pList;
-        for (int i = 0; i < LastPlayer; i++) {
-            if (!list || IsBadReadPtr((void*)list, 0x40)) break;
-            
-            int id = *(int*)(list + 0x10);
+        for (int i = 0; i < count; i++) {
+            if (!node || IsBadReadPtr((void*)node, 0x40)) break;
+
+            int id = *(int*)(node + 0x10);
             if (netid == id) {
-                int capacity = *(int*)(list + 0x30);
+                int capacity = *(int*)(node + 0x30);
                 char* namePtr = nullptr;
                 if (capacity < 16) {
-                    namePtr = (char*)(list + 0x18);
+                    namePtr = (char*)(node + 0x18);
                 } else {
-                    namePtr = *(char**)(list + 0x18);
+                    namePtr = *(char**)(node + 0x18);
                 }
                 if (namePtr && !IsBadStringPtrA(namePtr, outSize)) {
                     strncpy_s(outName, outSize, namePtr, _TRUNCATE);
+                    return (outName[0] != '\0');
                 }
                 break;
             }
-            list = *(uintptr_t*)(list + 8);
+            node = *(uintptr_t*)(node + 8);
         }
     }
     __except (EXCEPTION_EXECUTE_HANDLER) {}
+    return false;
+}
+
+static bool ProbeIsValidNameMap(uintptr_t addr) {
+    __try {
+        if (IsBadReadPtr((void*)addr, 16)) return false;
+        uintptr_t head = *(uintptr_t*)addr;
+        int count = *(int*)(addr + 8);
+        if (count <= 0 || count > 256 || !head) return false;
+        if (IsBadReadPtr((void*)(head + 8), 8)) return false;
+        uintptr_t first = *(uintptr_t*)(head + 8);
+        if (!first || IsBadReadPtr((void*)first, 0x40)) return false;
+        int testId = *(int*)(first + 0x10);
+        if (testId <= 0 || testId > 100000) return false;
+        int cap = *(int*)(first + 0x30);
+        if (cap < 0 || cap > 256) return false;
+        char* namePtr = nullptr;
+        if (cap < 16) {
+            namePtr = (char*)(first + 0x18);
+        } else {
+            if (IsBadReadPtr((void*)(first + 0x18), 8)) return false;
+            namePtr = *(char**)(first + 0x18);
+        }
+        if (!namePtr || IsBadStringPtrA(namePtr, 20)) return false;
+        if (namePtr[0] == '\0') return false;
+        return true;
+    }
+    __except (EXCEPTION_EXECUTE_HANDLER) {}
+    return false;
+}
+
+static uintptr_t FindPlayerNamesInDll(uintptr_t dllBase) {
+    __try {
+        if (!dllBase || IsBadReadPtr((void*)dllBase, 0x200)) return 0;
+        IMAGE_DOS_HEADER* dos = (IMAGE_DOS_HEADER*)dllBase;
+        if (dos->e_magic != IMAGE_DOS_SIGNATURE) return 0;
+        IMAGE_NT_HEADERS* nt = (IMAGE_NT_HEADERS*)(dllBase + dos->e_lfanew);
+        if (IsBadReadPtr(nt, sizeof(IMAGE_NT_HEADERS))) return 0;
+        if (nt->Signature != IMAGE_NT_SIGNATURE) return 0;
+        IMAGE_SECTION_HEADER* sec = IMAGE_FIRST_SECTION(nt);
+        for (WORD i = 0; i < nt->FileHeader.NumberOfSections; i++, sec++) {
+            bool isData = (sec->Name[0] == '.' && sec->Name[1] == 'd') ||
+                          (sec->Characteristics & IMAGE_SCN_MEM_WRITE);
+            if (!isData) continue;
+            uintptr_t start = dllBase + sec->VirtualAddress;
+            uintptr_t end = start + sec->Misc.VirtualSize;
+            for (uintptr_t p = start; p < end - 16; p += 8) {
+                if (ProbeIsValidNameMap(p))
+                    return p;
+            }
+        }
+    }
+    __except (EXCEPTION_EXECUTE_HANDLER) {}
+    return 0;
+}
+
+void Address::GetPlayerNameInternal(int netid, char* outName, size_t outSize) {
+    if (s_pPlayerNamesList && TryNameFromMap(s_pPlayerNamesList, netid, outName, outSize))
+        return;
+
+    auto dllName = sk("citizen-playernames-five.dll");
+    uintptr_t dllBase = (uintptr_t)GetModuleHandleA(dllName);
+    if (!dllBase) return;
+
+    if (TryNameFromMap(dllBase + 0x30D98, netid, outName, outSize))
+        return;
+
+    uintptr_t found = FindPlayerNamesInDll(dllBase);
+    if (found) {
+        s_pPlayerNamesList = found;
+        TryNameFromMap(found, netid, outName, outSize);
+    }
 }
 
 static bool ReadPlayerNameFromInfoSEH(uint64_t playerinfo, DWORD offset, char* out, size_t outSize) {
