@@ -1844,7 +1844,14 @@ static std::string FormatBytes(uintmax_t bytes) {
     return buf;
 }
 
-static bool OpenLuaFileDialog(std::wstring& outPath) {
+// --- Async file dialog (runs on a separate thread to avoid freezing the render loop) ---
+enum class FileDialogState { Idle, OpenPending, SavePending, DoneOpen, DoneSave };
+static FileDialogState s_fileDlgState = FileDialogState::Idle;
+static std::wstring s_fileDlgResult;
+static HANDLE s_fileDlgThread = nullptr;
+
+static DWORD WINAPI FileDialogOpenThread(LPVOID)
+{
     wchar_t fileName[MAX_PATH] = L"";
     OPENFILENAMEW ofn{};
     ofn.lStructSize = sizeof(ofn);
@@ -1854,11 +1861,16 @@ static bool OpenLuaFileDialog(std::wstring& outPath) {
     ofn.nMaxFile = MAX_PATH;
     ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST | OFN_NOCHANGEDIR;
     ofn.lpstrDefExt = L"lua";
-    if (GetOpenFileNameW(&ofn)) { outPath = fileName; return true; }
-    return false;
+    if (GetOpenFileNameW(&ofn)) {
+        s_fileDlgResult = fileName;
+        s_fileDlgState = FileDialogState::DoneOpen;
+    } else {
+        s_fileDlgState = FileDialogState::Idle;
+    }
+    return 0;
 }
 
-static bool SaveLuaFileDialog(std::wstring& outPath)
+static DWORD WINAPI FileDialogSaveThread(LPVOID)
 {
     wchar_t fileName[MAX_PATH] = L"script.lua";
     OPENFILENAMEW ofn{};
@@ -1869,8 +1881,27 @@ static bool SaveLuaFileDialog(std::wstring& outPath)
     ofn.nMaxFile = MAX_PATH;
     ofn.Flags = OFN_OVERWRITEPROMPT | OFN_NOCHANGEDIR;
     ofn.lpstrDefExt = L"lua";
-    if (GetSaveFileNameW(&ofn)) { outPath = fileName; return true; }
-    return false;
+    if (GetSaveFileNameW(&ofn)) {
+        s_fileDlgResult = fileName;
+        s_fileDlgState = FileDialogState::DoneSave;
+    } else {
+        s_fileDlgState = FileDialogState::Idle;
+    }
+    return 0;
+}
+
+static void StartOpenLuaDialog()
+{
+    if (s_fileDlgState != FileDialogState::Idle) return;
+    s_fileDlgState = FileDialogState::OpenPending;
+    s_fileDlgThread = CreateThread(nullptr, 0, FileDialogOpenThread, nullptr, 0, nullptr);
+}
+
+static void StartSaveLuaDialog()
+{
+    if (s_fileDlgState != FileDialogState::Idle) return;
+    s_fileDlgState = FileDialogState::SavePending;
+    s_fileDlgThread = CreateThread(nullptr, 0, FileDialogSaveThread, nullptr, 0, nullptr);
 }
 
 static bool WriteStringToFile(const wchar_t* path, const char* data, size_t len)
@@ -3623,15 +3654,23 @@ static bool SafeLuaExecScript(const std::string& script)
  			}*/
  			ImGui::SameLine();
  			if (ui::modern_button(sk("Open Lua"), ImVec2(90, 0))) {
- 				std::wstring pathW;
- 				if (OpenLuaFileDialog(pathW)) {
- 					std::string data = ReadFileToString(pathW.c_str());
- 					if (!data.empty()) {
- 						strncpy_s(lua_script_buf, data.c_str(), _TRUNCATE);
- 						wcsncpy_s(lua_last_path, pathW.c_str(), _TRUNCATE);
- 						AppendLuaLog("Opened script.");
- 					}
+ 				StartOpenLuaDialog();
+ 			}
+ 			// Handle async file dialog result
+ 			if (s_fileDlgState == FileDialogState::DoneOpen) {
+ 				std::string data = ReadFileToString(s_fileDlgResult.c_str());
+ 				if (!data.empty()) {
+ 					strncpy_s(lua_script_buf, data.c_str(), _TRUNCATE);
+ 					wcsncpy_s(lua_last_path, s_fileDlgResult.c_str(), _TRUNCATE);
+ 					AppendLuaLog("Opened script.");
  				}
+ 				s_fileDlgResult.clear();
+ 				s_fileDlgState = FileDialogState::Idle;
+ 				if (s_fileDlgThread) { CloseHandle(s_fileDlgThread); s_fileDlgThread = nullptr; }
+ 			}
+ 			if (s_fileDlgState == FileDialogState::OpenPending || s_fileDlgState == FileDialogState::SavePending) {
+ 				ImGui::SameLine();
+ 				ImGui::TextDisabled("...");
  			}
  			ImGui::SameLine();
  			{
